@@ -29,6 +29,7 @@ public class UserService {
             this.userRepository.save(user);
             return Optional.of(user);
         } catch (DataIntegrityViolationException e) {
+            System.out.println(e.getMessage());
             return Optional.empty();
         }
     }
