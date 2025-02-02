@@ -37,8 +37,11 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<User> addUser(@RequestBody User user) {
-        User createdUser = this.userService.registerUser(user);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        Optional<User> createdUser = this.userService.registerUser(user);
+        return createdUser.map(value
+                -> new ResponseEntity<>(value, HttpStatus.CREATED))
+                    .orElseGet(()
+                -> new ResponseEntity<>(HttpStatus.CONFLICT));
     }
 
 //    @PutMapping

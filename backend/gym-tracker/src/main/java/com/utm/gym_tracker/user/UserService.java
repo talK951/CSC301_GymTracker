@@ -1,11 +1,11 @@
 package com.utm.gym_tracker.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 public class UserService {
@@ -20,9 +20,17 @@ public class UserService {
         return this.userRepository.findAll();
     }
 
-    public User registerUser(User user) {
-        this.userRepository.save(user);
-        return user;
+    public Optional<User> registerUser(User user) {
+//        Optional<User> existingUser = this.findUser(user);
+//        if (existingUser.isPresent()) {
+//            return existingUser;
+//        }
+        try {
+            this.userRepository.save(user);
+            return Optional.of(user);
+        } catch (DataIntegrityViolationException e) {
+            return Optional.empty();
+        }
     }
 
     public Optional<User> getUserByUsername(String username) {
@@ -39,5 +47,9 @@ public class UserService {
 
     public Optional<User> getUserByEmail(String email) {
         return this.userRepository.findByEmail(email);
+    }
+
+    public Optional<User> findUser(User user) {
+        return this.userRepository.findById(user.getID());
     }
 }

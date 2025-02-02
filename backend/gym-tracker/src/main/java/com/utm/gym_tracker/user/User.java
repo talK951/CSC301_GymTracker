@@ -33,13 +33,13 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public User(String username, String name, String utorID, String email, String password, String profilePicture) {
+    public User(String username, String name, String utorID, String email, String password) {
         this.username = username;
         this.name = name;
         this.utorID = utorID;
         this.email = email;
         this.password = password;
-        this.profilePicture = profilePicture;
+        this.profilePicture = "Default"; // TODO: Set to default path
     }
 
     public User() {}
@@ -55,6 +55,10 @@ public class User {
                 ", profilePicture='" + profilePicture + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
+    }
+
+    public Long getID() {
+        return this.id;
     }
 
     public String getUsername() {
