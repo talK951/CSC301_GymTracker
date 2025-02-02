@@ -6,18 +6,18 @@ import { LinearGradient } from "expo-linear-gradient";
 import axios from "axios";
 
 export default function SignInScreen() {
-  const [utorid, setUtorid] = useState("");
+  const [utorID, setUtorid] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    if (!utorid || !password) {
+    if (!utorID || !password) {
       alert("Please fill in all fields");
       return;
     }
 
     try {
       const response = await axios.post("", {
-        utorid,
+        utorID,
         password,
       });
 
@@ -44,7 +44,7 @@ export default function SignInScreen() {
         <Title style={styles.title}>Login</Title>
         <TextInput
           label="UTORid"
-          value={utorid}
+          value={utorID}
           onChangeText={setUtorid}
           mode="outlined"
           style={styles.input}

@@ -25,6 +25,7 @@ public class UserService {
 //        if (existingUser.isPresent()) {
 //            return existingUser;
 //        }
+        System.out.println(user.toString());
         try {
             this.userRepository.save(user);
             return Optional.of(user);

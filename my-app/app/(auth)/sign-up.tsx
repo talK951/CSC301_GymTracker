@@ -8,6 +8,7 @@ import axios from "axios";
 export default function SignUpScreen() {
   const [formData, setFormData] = useState({
     username: "",
+    name: "",
     utorid: "",
     email: "",
     password: "",
@@ -18,9 +19,9 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
-    const { username, utorid, email, password } = formData;
+    const { username, name, utorid, email, password } = formData;
 
-    if (!username || !utorid || !email || !password) {
+    if (!username || !name || !utorid || !email || !password) {
       alert("Please fill in all fields");
       return;
     }
@@ -33,7 +34,8 @@ export default function SignUpScreen() {
     try {
       const response = await axios.post("http://localhost:8080/api/user", {
         username: formData.username,
-        utorid: formData.utorid,
+        name: formData.name,
+        utorID: formData.utorid,
         email: formData.email,
         password: formData.password,
       });
@@ -56,6 +58,14 @@ export default function SignUpScreen() {
           label="Username"
           value={formData.username}
           onChangeText={(value) => handleInputChange("username", value)}
+          mode="outlined"
+          style={styles.input}
+          theme={{ colors: { primary: "#4CAF50", background: "#FFF" } }}
+        />
+        <TextInput
+          label="Name"
+          value={formData.name}
+          onChangeText={(value) => handleInputChange("name", value)}
           mode="outlined"
           style={styles.input}
           theme={{ colors: { primary: "#4CAF50", background: "#FFF" } }}
