@@ -19,10 +19,20 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable("id") Long id,
-                                        @RequestParam("password") String password) {
+    @GetMapping("/auth/{id}")
+    public ResponseEntity<User> authenticateUser(@PathVariable("id") Long id,
+                                                 @RequestParam String password) {
         Optional<User> user =  this.userService.authenticateUser(id, password);
+        return user.map(value
+                        -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(()
+                        -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+    }
+
+    @GetMapping("")
+    public ResponseEntity<User> getUserByEmail(
+            @RequestParam("email") String email) {
+        Optional<User> user = this.userService.getUserByEmail(email);
         return user.map(value
                         -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(()
