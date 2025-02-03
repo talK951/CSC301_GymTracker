@@ -19,24 +19,30 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/auth/{id}")
-    public ResponseEntity<User> authenticateUser(@PathVariable("id") Long id,
-                                                 @RequestParam String password) {
-        Optional<User> user =  this.userService.authenticateUser(id, password);
-        return user.map(value
+    @GetMapping("/auth")
+    public ResponseEntity<User> authenticateUser(
+            @RequestParam("username") String username,
+            @RequestParam("password") String password) {
+        Optional<User> user = this.userService.getUserByUsername(username);
+        if (user.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Optional<User> authenticatedUser =
+                this.userService.authenticateUser(user.get().getID(), password);
+        return authenticatedUser.map(value
                         -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(()
-                        -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+                        -> new ResponseEntity<>(HttpStatus.UNAUTHORIZED));
     }
 
-    @GetMapping("")
+    @GetMapping()
     public ResponseEntity<User> getUserByEmail(
             @RequestParam("email") String email) {
         Optional<User> user = this.userService.getUserByEmail(email);
         return user.map(value
                         -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(()
-                        -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+                        -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping
