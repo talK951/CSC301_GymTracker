@@ -11,7 +11,7 @@ export default function SignInScreen() {
 
   const handleLogin = async () => {
     if (!utorID || !password) {
-      alert("Please fill in all fields");
+      Alert.alert("Please fill in all fields");
       return;
     }
 
