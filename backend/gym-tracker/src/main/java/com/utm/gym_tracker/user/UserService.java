@@ -64,4 +64,15 @@ public class UserService {
     public Optional<User> findUser(User user) {
         return this.userRepository.findById(user.getID());
     }
+
+    public Optional<User> authenticateUser(Long id, String password) {
+        Optional<User> user = this.getUserByID(id);
+        if (user.isEmpty()) { return user; }
+
+        String userPassword = user.get().getPassword();
+        if (passwordEncoder.matches(password, userPassword)) {
+            return user;
+        }
+        return Optional.empty();
+    }
 }
