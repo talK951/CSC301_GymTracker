@@ -3,6 +3,8 @@ package com.utm.gym_tracker.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,10 +12,12 @@ import java.util.Optional;
 @Component
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     public List<User> getUsers() {
@@ -21,11 +25,11 @@ public class UserService {
     }
 
     public Optional<User> registerUser(User user) {
-//        Optional<User> existingUser = this.findUser(user);
-//        if (existingUser.isPresent()) {
-//            return existingUser;
-//        }
-        System.out.println(user.toString());
+        if (!user.getEmail().contains("@mail.utoronto.ca")) {
+            return Optional.empty();
+        }
+        hashPassword(user);
+        System.out.println(user);
         try {
             this.userRepository.save(user);
             return Optional.of(user);
@@ -33,6 +37,12 @@ public class UserService {
             System.out.println(e.getMessage());
             return Optional.empty();
         }
+    }
+
+    private void hashPassword(User user) {
+        String hashedPassword = this.passwordEncoder
+                .encode(user.getPassword());
+        user.setPassword(hashedPassword);
     }
 
     public Optional<User> getUserByUsername(String username) {
@@ -53,5 +63,16 @@ public class UserService {
 
     public Optional<User> findUser(User user) {
         return this.userRepository.findById(user.getID());
+    }
+
+    public Optional<User> authenticateUser(Long id, String password) {
+        Optional<User> user = this.getUserByID(id);
+        if (user.isEmpty()) { return user; }
+
+        String userPassword = user.get().getPassword();
+        if (passwordEncoder.matches(password, userPassword)) {
+            return user;
+        }
+        return Optional.empty();
     }
 }

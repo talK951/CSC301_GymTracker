@@ -3,6 +3,7 @@ package com.utm.gym_tracker.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+// import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -18,22 +19,14 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping
-    public Optional<User> getUser(
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String utorID,
-            @RequestParam(required = false) String email) {
-        if (username != null) {
-            return this.userService.getUserByUsername(username);
-        } else if (id != null) {
-            return this.userService.getUserByID(id);
-        } else if (utorID != null) {
-            return this.userService.getUserByUtorID(utorID);
-        } else if (email != null) {
-            return this.userService.getUserByEmail(email);
-        }
-        return Optional.empty();
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUser(@PathVariable("id") Long id,
+                                        @RequestParam("password") String password) {
+        Optional<User> user =  this.userService.authenticateUser(id, password);
+        return user.map(value
+                        -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(()
+                        -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
     @PostMapping
