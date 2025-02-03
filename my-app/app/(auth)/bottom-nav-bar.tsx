@@ -3,6 +3,7 @@ import { Button, View, Alert, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons'; // import an icon set
+import PersonalPage from "./personal_page";
 
 const page = createBottomTabNavigator();
 
@@ -12,7 +13,7 @@ export default function navigateBar() {
         <page.Navigator>
             <page.Screen 
               name="Personal Page" 
-              component={testScreen} 
+              component={PersonalPage} 
               options={{
                 tabBarIcon: ({ color, size }) => (
                   <Ionicons name="person" size={size} color={color} />
