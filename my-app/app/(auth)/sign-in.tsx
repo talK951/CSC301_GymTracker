@@ -6,31 +6,30 @@ import { LinearGradient } from "expo-linear-gradient";
 import axios from "axios";
 
 export default function SignInScreen() {
-  const [utorID, setUtorid] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    if (!utorID || !password) {
+    if (!username || !password) {
       Alert.alert("Please fill in all fields");
       return;
     }
 
     try {
-      const response = await axios.post("", {
-        utorID,
-        password,
+      const response = await axios.get("http://localhost:8080/api/user/auth", {
+        params: {username, password}
       });
 
-      if (response.data.token) {
-        Alert.alert("Logged in successfully!");
+      if (response.status == 200) {
+        alert("Logged in successfully!");
       } else {
-        Alert.alert("Invalid credentials, please try again.");
+        alert("Invalid credentials, please try again.");
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        Alert.alert("Error", error.response?.data?.message || "Login failed. Please try again.");
+        alert("Login failed. Please try again.");
       } else {
-        Alert.alert("Error", "An unexpected error occurred.");
+        alert("An unexpected error occurred.");
       }
     }
   };
@@ -43,9 +42,9 @@ export default function SignInScreen() {
       <View style={styles.container}>
         <Title style={styles.title}>Login</Title>
         <TextInput
-          label="UTORid"
-          value={utorID}
-          onChangeText={setUtorid}
+          label="Username"
+          value={username}
+          onChangeText={setUsername}
           mode="outlined"
           style={styles.input}
           theme={{ colors: { primary: "#FFA500", background: "#FFF" } }}
