@@ -3,9 +3,11 @@ import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Title } from "react-native-paper";
 import CustomButton from "../../components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import axios from "axios";
 
 export default function SignInScreen() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -21,7 +23,8 @@ export default function SignInScreen() {
       });
 
       if (response.status == 200) {
-        alert("Logged in successfully!");
+        // alert("Logged in successfully!");
+        router.push("/(auth)/bottom-nav-bar");
       } else {
         alert("Invalid credentials, please try again.");
       }
