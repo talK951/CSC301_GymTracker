@@ -18,12 +18,14 @@ export default function SignInScreen() {
     }
 
     try {
-      const response = await axios.get("http://localhost:8080/api/user/auth", {
-        params: {username, password}
+      const response = await axios.post("http://localhost:8080/api/user/auth", {
+        username,
+        password,
       });
 
       if (response.status == 200) {
         // alert("Logged in successfully!");
+        console.log(response);
         router.push("/(auth)/bottom-nav-bar");
       } else {
         alert("Invalid credentials, please try again.");
