@@ -24,7 +24,7 @@ export default function navigateBar() {
       }} />
       <page.Screen 
         name="Groups Page" 
-        component={testScreen} options={{
+        component={TestScreen} options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
@@ -32,7 +32,7 @@ export default function navigateBar() {
       }}/>
       <page.Screen 
         name="Create Group" 
-        component={testScreen} 
+        component={TestScreen} 
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="add" size={size} color={color} />
@@ -61,7 +61,7 @@ export default function navigateBar() {
   );
 };
 
-function testScreen() {
+function TestScreen() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Button title="This screen is what the navigation bar is currently switched to" onPress={() => Alert.alert('Button Pressed!')} />

@@ -50,7 +50,7 @@ public class UserService {
     }
 
     public Optional<User> getUserByID(Long id) {
-        return this.userRepository.findById(id.toString());
+        return this.userRepository.findById(id);
     }
 
     public Optional<User> getUserByUtorID(String utorID) {

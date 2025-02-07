@@ -1,11 +1,14 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Title } from "react-native-paper";
 import CustomButton from "../../components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { saveToken } from "../../utils/authStorage";
 import axios from "axios";
 
 export default function SignInScreen() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -16,18 +19,25 @@ export default function SignInScreen() {
     }
 
     try {
-      const response = await axios.get("http://localhost:8080/api/user/auth", {
-        params: {username, password}
+      const response = await axios.post("http://localhost:8080/api/user/auth", {
+        username,
+        password,
       });
+      
+      const jwtToken = response.data.token;
+      console.log(response.data);
+      // await saveToken(jwtToken);
+      router.push("/(auth)/nav_bar");
 
-      if (response.status == 200) {
-        alert("Logged in successfully!");
-      } else {
-        alert("Invalid credentials, please try again.");
-      }
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        alert("Login failed. Please try again.");
+        const status = error.response?.status;
+        if (status === 401 || status === 404) {
+          alert("Invalid credentials, please try again.");
+        } else {
+          console.log(status);
+          alert("Login failed. Please try again.");
+        }
       } else {
         alert("An unexpected error occurred.");
       }
