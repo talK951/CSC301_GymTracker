@@ -1,12 +1,16 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Title } from "react-native-paper";
 import CustomButton from "../../components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import axios from "axios";
 
 export default function SignUpScreen() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     username: "",
+    name: "",
     utorid: "",
     email: "",
     password: "",
@@ -16,33 +20,60 @@ export default function SignUpScreen() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSignUp = () => {
-    const { username, utorid, email, password } = formData;
+  const handleSignUp = async () => {
+    const { username, name, utorid, email, password } = formData;
 
-    if (!username || !utorid || !email || !password) {
-      alert("Please fill in all fields");
+    if (!username || !name || !utorid || !email || !password) {
+      Alert.alert("Please fill in all fields");
       return;
     }
 
     if (!email.includes("@mail.utoronto.ca")) {
-      alert("Please enter a valid Uoft email address");
+      Alert.alert("Please enter a valid Uoft email address");
       return;
     }
 
-    alert("Registered successfully!");
+    try {
+      const response = await axios.post("http://localhost:8080/api/user", {
+        username: formData.username.toLowerCase(),
+        name: formData.name.toLowerCase(),
+        utorID: formData.utorid.toLowerCase(),
+        email: formData.email.toLowerCase(),
+        password: formData.password,
+      });
+
+      router.push("/(auth)/sign-in");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 409) {
+          Alert.alert("An account with this email already exists.");
+        } else if (error.response?.status === 400) {
+          Alert.alert("Invalid Data", error.response.data.message || "Check your details and try again.");
+        } else {
+          Alert.alert("Error", error.response?.data?.message || "Failed to register. Please try again.");
+        }
+      } else {
+        Alert.alert("Error", "An unexpected error occurred.");
+      }
+    }
   };
 
   return (
-    <LinearGradient
-      colors={["#1A1A1A", "#333333"]}
-      style={styles.background}
-    >
+    <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
       <View style={styles.container}>
         <Title style={styles.title}>Sign Up</Title>
         <TextInput
           label="Username"
           value={formData.username}
           onChangeText={(value) => handleInputChange("username", value)}
+          mode="outlined"
+          style={styles.input}
+          theme={{ colors: { primary: "#4CAF50", background: "#FFF" } }}
+        />
+        <TextInput
+          label="Name"
+          value={formData.name}
+          onChangeText={(value) => handleInputChange("name", value)}
           mode="outlined"
           style={styles.input}
           theme={{ colors: { primary: "#4CAF50", background: "#FFF" } }}
