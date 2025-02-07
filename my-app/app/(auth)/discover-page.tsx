@@ -3,12 +3,20 @@ import { View, Text, FlatList, TouchableOpacity, TextInput, Image, StyleSheet, A
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
 
+interface User {
+  id: string;
+  name: string;
+  experience: string;
+  workout: string;
+  avatar: string;
+  location: string;
+}
 
-const mockFetchUsers = (page) => {
+const mockFetchUsers = (page: number): Promise<User[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const newUsers = Array.from({ length: 8 }, (_, index) => {
-        const id = page * 4 + index + 1;
+      const newUsers: User[] = Array.from({ length: 8 }, (_, index) => {
+        const id = (page - 1) * 8 + index + 1;
         return {
           id: id.toString(),
           name: `User ${id}`,
@@ -23,16 +31,17 @@ const mockFetchUsers = (page) => {
   });
 };
 
-const DiscoverPage = () => {
+const DiscoverPage: React.FC = () => {
   const navigation = useNavigation();
-  const [users, setUsers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  
+  const [users, setUsers] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     setLoading(true);
-    mockFetchUsers(page).then((newUsers) => {
+    mockFetchUsers(page).then((newUsers: User[]) => {
       setUsers((prevUsers) => [...prevUsers, ...newUsers]);
       setLoading(false);
     });
@@ -48,42 +57,37 @@ const DiscoverPage = () => {
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const navigateToProfile = (user) => {
-    navigation.navigate('Profile', { user });
-  };
-
   return (
-    <LinearGradient
-          colors={["#1A1A1A", "#333333"]}
-          style={styles.background}
-        >
-    <View style={styles.container}>
-      <Text style={styles.header}>Looking for a workout partner</Text>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Search by name..."
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
-      <FlatList
-        data={filteredUsers}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.userCard} onPress={() => navigateToProfile(item)}>
-            <Image source={{ uri: item.avatar }} style={styles.avatar} />
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>{item.name}</Text>
-              <Text style={styles.userDetail}>Experience: {item.experience}</Text>
-              <Text style={styles.userDetail}>Workout Type: {item.workout}</Text>
-              <Text style={styles.userDetail}>Location: {item.location}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        onEndReached={loadMoreUsers}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={loading ? <ActivityIndicator size="large" color="#0000ff" /> : null}
-      />
-    </View>
+    <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
+      <View style={styles.container}>
+        <Text style={styles.header}>Looking for a workout partner</Text>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search by name..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <FlatList
+          data={filteredUsers}
+          keyExtractor={(item: User) => item.id}
+          renderItem={({ item }: { item: User }) => (
+            <TouchableOpacity style={styles.userCard}>
+              <Image source={{ uri: item.avatar }} style={styles.avatar} />
+              <View style={styles.userInfo}>
+                <Text style={styles.userName}>{item.name}</Text>
+                <Text style={styles.userDetail}>Experience: {item.experience}</Text>
+                <Text style={styles.userDetail}>Workout Type: {item.workout}</Text>
+                <Text style={styles.userDetail}>Location: {item.location}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          onEndReached={loadMoreUsers}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
+          }
+        />
+      </View>
     </LinearGradient>
   );
 };
@@ -94,7 +98,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
-
   container: {
     flex: 1,
     padding: 16,
