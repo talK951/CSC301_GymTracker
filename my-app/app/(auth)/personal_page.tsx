@@ -1,6 +1,8 @@
 import React from "react";
-import { ScrollView, View, Text, StyleSheet } from "react-native";
+import { ScrollView, View, Text, StyleSheet, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+
+const {width, height} = Dimensions.get("window");
 
 export default function PersonalPage() {
   return (
@@ -107,9 +109,12 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   container: {
-    alignItems: "center",
+    flex: 1,
+    flexDirection: "column",
+    alignItems: "center", 
+    justifyContent: "center",
     paddingHorizontal: 20,
-    width:1000,
+    width: "80%",
   },
   title: {
     fontSize: 32,
@@ -122,7 +127,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     padding: 20,
     borderRadius: 10,
-    width: "90%",
+    width: "100%",
     alignItems: "center",
     marginBottom: 20,
     elevation: 3,
@@ -165,7 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     padding: 20,
     borderRadius: 10,
-    width: "90%",
+    width: "100%",
     alignItems: "center",
     height: 250,
     marginBottom: 20,
@@ -212,7 +217,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     padding: 20,
     borderRadius: 10,
-    width: "90%",
+    width: "100%",
     alignItems: "center",
     marginBottom: 50,
     elevation: 3,
