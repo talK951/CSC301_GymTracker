@@ -28,11 +28,6 @@ export default function HomeScreen() {
           onPress={() => router.push("/(auth)/sign-up")}
           color="#4CAF50"
         />
-        <CustomButton
-          label="Open App"
-          onPress={() => router.push("/(auth)/nav_bar")}
-          color="#FFA500"
-        />
       </View>
     </LinearGradient>
   );
