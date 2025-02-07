@@ -24,12 +24,12 @@ export default function SignUpScreen() {
     const { username, name, utorid, email, password } = formData;
 
     if (!username || !name || !utorid || !email || !password) {
-      Alert.alert("Please fill in all fields");
+      alert("Please fill in all fields");
       return;
     }
 
     if (!email.includes("@mail.utoronto.ca")) {
-      Alert.alert("Please enter a valid Uoft email address");
+      alert("Please enter a valid Uoft email address");
       return;
     }
 
@@ -46,7 +46,7 @@ export default function SignUpScreen() {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 409) {
-          Alert.alert("An account with this email already exists.");
+          alert("An account with this email already exists.");
         } else if (error.response?.status === 400) {
           Alert.alert("Invalid Data", error.response.data.message || "Check your details and try again.");
         } else {

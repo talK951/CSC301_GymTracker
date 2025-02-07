@@ -21,15 +21,22 @@ public class JwtService {
     private long jwtExpirationMs;
 
     public String generateToken(User user) {
-        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        Key key = getSigningKey();
         
         return Jwts.builder()
                 .setSubject(user.getUsername())
                 .claim("userId", user.getID())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
+    public Key getSigningKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public long getJwtExpirationMs() {
+        return jwtExpirationMs;
+    }
 }
