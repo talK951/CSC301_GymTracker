@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons'; // import an icon set
 import PersonalPage from "./personal_page";
 import SettingsPage from "./settings_page";
+import DiscoverPage from "./discover-page";
 
 const page = createBottomTabNavigator();
 
@@ -19,6 +20,7 @@ export default function navigateBar() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
+        headerShown: false
       }} />
       <page.Screen 
         name="Groups Page" 
@@ -26,6 +28,7 @@ export default function navigateBar() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
+        headerShown: false
       }}/>
       <page.Screen 
         name="Create Group" 
@@ -34,14 +37,16 @@ export default function navigateBar() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="add" size={size} color={color} />
           ),
+        headerShown: false
       }}/>
       <page.Screen 
       name="Discover Page" 
-      component={testScreen} 
+      component={DiscoverPage} 
       options={{
         tabBarIcon: ({ color, size }) => (
           <Ionicons name="search" size={size} color={color} />
         ),
+        headerShown: false
       }}/>
       <page.Screen 
       name="Settings" 
@@ -50,6 +55,7 @@ export default function navigateBar() {
         tabBarIcon: ({ color, size }) => (
           <Ionicons name="settings" size={size} color={color} />
         ),
+        headerShown: false
       }}/>
     </page.Navigator>
   );
