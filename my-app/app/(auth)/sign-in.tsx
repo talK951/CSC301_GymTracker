@@ -1,16 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Title } from "react-native-paper";
 import CustomButton from "../../components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { saveToken } from "../../utils/authStorage";
+import Constants from 'expo-constants';
 import axios from "axios";
 
 export default function SignInScreen() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  const API_BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -19,14 +22,14 @@ export default function SignInScreen() {
     }
 
     try {
-      const response = await axios.post("http://localhost:8080/api/user/auth", {
+      const response = await axios.post(`${API_BASE_URL}/user/auth`, {
         username,
         password,
       });
       
       const jwtToken = response.data.token;
       console.log(response.data);
-      // await saveToken(jwtToken);
+      await saveToken(jwtToken);
       router.push("/(auth)/nav_bar");
 
     } catch (error: unknown) {
