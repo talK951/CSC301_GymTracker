@@ -7,3 +7,7 @@ export async function saveToken(token: string): Promise<void> {
 export async function getToken(): Promise<string | null> {
     return await SecureStore.getItemAsync('userToken');
 }
+
+export async function deleteToken(): Promise<void> {
+    await SecureStore.deleteItemAsync('userToken');
+}
