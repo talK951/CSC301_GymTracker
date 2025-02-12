@@ -5,11 +5,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.utm.gym_tracker.dto.ApiResponse;
 import com.utm.gym_tracker.security.JwtResponse;
 import com.utm.gym_tracker.security.JwtService;
 import com.utm.gym_tracker.user.dto.LoginRequest;
+import com.utm.gym_tracker.user.dto.UserResponse;
+import com.utm.gym_tracker.workout.dto.WorkoutResponse;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:8081")
 @RestController
@@ -25,7 +30,7 @@ public class UserController {
     }
     
     @PostMapping("/auth")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<JwtResponse>> authenticateUser(@RequestBody LoginRequest loginRequest) {
         Optional<User> user = userService.getUserByUsername(loginRequest.getUsername());
         if (user.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -35,20 +40,48 @@ public class UserController {
         if (authenticatedUser.isPresent()) {
             // Generate JWT token
             String token = jwtService.generateToken(authenticatedUser.get());
-            return ResponseEntity.ok(new JwtResponse(token, "Bearer", jwtService.getJwtExpirationMs() / 1000));
+
+            JwtResponse jwtResponse = new JwtResponse(token, "Bearer", jwtService.getJwtExpirationMs() / 1000);
+            ApiResponse<JwtResponse> response = new ApiResponse<>("Success", jwtResponse);
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
     @GetMapping()
-    public ResponseEntity<User> getUserByEmail(
+    public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(
             @RequestParam("email") String email) {
-        Optional<User> user = this.userService.getUserByEmail(email);
-        return user.map(value
-                        -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(()
-                        -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        Optional<User> userOpt = this.userService.getUserByEmail(email);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        User user = userOpt.get();
+    
+        List<WorkoutResponse> workoutDTOs = user.getWorkouts().stream()
+            .map(workout -> new WorkoutResponse(
+                    workout.getId(),
+                    workout.getExercise(),
+                    workout.getSets(),
+                    workout.getWeight(),
+                    workout.getStartTime(),
+                    workout.getEndTime()
+            ))
+            .collect(Collectors.toList());
+        
+        UserResponse userResponse = new UserResponse(
+            user.getID(),
+            user.getUsername(),
+            user.getName(),
+            user.getUtorID(),
+            user.getEmail(),
+            user.getProfilePicture(),
+            workoutDTOs
+        );
+
+        ApiResponse<UserResponse> response = new ApiResponse<>("Success", userResponse);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
