@@ -7,6 +7,8 @@ import { useRouter } from "expo-router";
 import { saveToken } from "../../utils/authStorage";
 import Constants from 'expo-constants';
 import axios from "axios";
+import { AxiosResponse } from "axios";
+import { ApiResponse, JwtResponseType } from "@/types/api";
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -27,8 +29,7 @@ export default function SignInScreen() {
         password,
       });
       
-      const jwtToken = response.data.token;
-      console.log(response.data);
+      const jwtToken = unwrapApiResponse<JwtResponseType>(response).token;
       await saveToken(jwtToken);
       router.push("/(auth)/nav_bar");
 
@@ -46,6 +47,10 @@ export default function SignInScreen() {
       }
     }
   };
+
+  function unwrapApiResponse<T>(response: AxiosResponse<ApiResponse<T>>): T {
+    return response.data.data;
+  }
 
   return (
     <LinearGradient
