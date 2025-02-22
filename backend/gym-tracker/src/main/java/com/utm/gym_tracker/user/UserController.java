@@ -6,10 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.utm.gym_tracker.dto.ApiResponse;
+import com.utm.gym_tracker.exercise.dto.ExerciseResponse;
 import com.utm.gym_tracker.security.JwtResponse;
 import com.utm.gym_tracker.security.JwtService;
 import com.utm.gym_tracker.user.dto.LoginRequest;
 import com.utm.gym_tracker.user.dto.UserResponse;
+import com.utm.gym_tracker.workout.Workout;
 import com.utm.gym_tracker.workout.dto.WorkoutResponse;
 
 import java.util.List;
@@ -58,17 +60,10 @@ public class UserController {
         }
 
         User user = userOpt.get();
-    
+
         List<WorkoutResponse> workoutDTOs = user.getWorkouts().stream()
-            .map(workout -> new WorkoutResponse(
-                    workout.getId(),
-                    workout.getExercise(),
-                    workout.getSets(),
-                    workout.getWeight(),
-                    workout.getStartTime(),
-                    workout.getEndTime()
-            ))
-            .collect(Collectors.toList());
+        .map(this::mapWorkoutToDto)
+        .collect(Collectors.toList());
         
         UserResponse userResponse = new UserResponse(
             user.getID(),
@@ -97,4 +92,25 @@ public class UserController {
 //    public ResponseEntity<User> updateUser(@RequestParam User user) {
 //        User updatedUser = this.userService.modifyUser(user);
 //    }
+
+    private WorkoutResponse mapWorkoutToDto(Workout workout) {
+        List<ExerciseResponse> exerciseDtos = workout.getExercises().stream()
+            .map(exercise -> new ExerciseResponse(
+                exercise.getId(),
+                exercise.getExercise(),
+                exercise.getSets(),
+                exercise.getReps(),
+                exercise.getWeight(),
+                exercise.getCreatedAt()
+            ))
+            .collect(Collectors.toList());
+        
+        return new WorkoutResponse(
+            workout.getId(),
+            workout.getStartTime(),
+            workout.getEndTime(),
+            exerciseDtos
+        );
+    }
+
 }

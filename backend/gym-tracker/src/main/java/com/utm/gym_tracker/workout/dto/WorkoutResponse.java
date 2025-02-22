@@ -1,24 +1,22 @@
 package com.utm.gym_tracker.workout.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import com.utm.gym_tracker.exercise.dto.ExerciseResponse;
 
 public class WorkoutResponse {
     private Long id;
-    private String exercise;
-    private Integer sets;
-    private Double weight;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private List<ExerciseResponse> exercises;
 
     public WorkoutResponse() {}
 
-    public WorkoutResponse(Long id, String exercise, Integer sets, Double weight, LocalDateTime startTime, LocalDateTime endTime) {
+    public WorkoutResponse(Long id, LocalDateTime startTime, LocalDateTime endTime, List<ExerciseResponse> exercises) {
         this.id = id;
-        this.exercise = exercise;
-        this.sets = sets;
-        this.weight = weight;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.exercises = exercises;
     }
 
     public Long getId() {
@@ -27,25 +25,6 @@ public class WorkoutResponse {
     public void setId(Long id) {
         this.id = id;
     }
-    public String getExercise() {
-        return exercise;
-    }
-    public void setExercise(String exercise) {
-        this.exercise = exercise;
-    }
-    public Integer getSets() {
-        return sets;
-    }
-    public void setSets(Integer sets) {
-        this.sets = sets;
-    }
-    public Double getWeight() {
-        return weight;
-    }
-    public void setWeight(Double weight) {
-        this.weight = weight;
-    }
-
     public LocalDateTime getStartTime() {
         return startTime;
     }
@@ -58,5 +37,10 @@ public class WorkoutResponse {
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
+    public List<ExerciseResponse> getExercises() {
+        return exercises;
+    }
+    public void setExercises(List<ExerciseResponse> exercises) {
+        this.exercises = exercises;
+    }
 }
-

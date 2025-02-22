@@ -1,13 +1,11 @@
 package com.utm.gym_tracker.workout;
 
 import java.time.LocalDateTime;
-
-// import org.springframework.cglib.core.Local;
-
+import java.util.ArrayList;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.utm.gym_tracker.exercise.Exercise;
 import com.utm.gym_tracker.user.User;
-import jakarta.validation.constraints.Min;
-
 import jakarta.persistence.*;
 
 @Entity
@@ -23,15 +21,8 @@ public class Workout {
     @JsonIgnoreProperties("workouts")
     private User user;
 
-    @Column(nullable = false)
-    private String exercise;
-
-    @Column(nullable = false)
-    private Integer sets;
-
-    @Column(nullable = false)
-    @Min(0)
-    private Double weight;
+    @OneToMany(mappedBy = "workout", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Exercise> exercises = new ArrayList<>();
 
     @Column(nullable = false)
     private LocalDateTime startTime;
@@ -44,12 +35,9 @@ public class Workout {
 
     public Workout() {}
 
-    public Workout(User user, String exercise, Integer sets, Double weight, LocalDateTime starTime, LocalDateTime endTime) {
+    public Workout(User user, LocalDateTime startTime, LocalDateTime endTime) {
         this.user = user;
-        this.exercise = exercise;
-        this.sets = sets;
-        this.weight = weight;
-        this.startTime = starTime;
+        this.startTime = startTime;
         this.endTime = endTime;
     }
 
@@ -63,30 +51,6 @@ public class Workout {
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public String getExercise() {
-        return exercise;
-    }
-
-    public void setExercise(String exercise) {
-        this.exercise = exercise;
-    }
-
-    public Integer getSets() {
-        return sets;
-    }
-
-    public void setSets(Integer sets) {
-        this.sets = sets;
-    }
-
-    public Double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(Double weight) {
-        this.weight = weight;
     }
 
     public LocalDateTime getStartTime() {
@@ -103,16 +67,35 @@ public class Workout {
         this.endTime = endTime;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public List<Exercise> getExercises() {
+        return exercises;
+    }
+    public void setExercises(List<Exercise> exercises) {
+        this.exercises = exercises;
+    }
+
+    public void addExercise(Exercise exercise) {
+        exercises.add(exercise);
+        exercise.setWorkout(this);
+    }
+
+    public void removeExercise(Exercise exercise) {
+        exercises.remove(exercise);
+        exercise.setWorkout(null);
+    }
+
     @Override
     public String toString() {
         return "Workout{" +
                 "id=" + id +
-                ", exercise='" + exercise + '\'' +
-                ", sets=" + sets +
-                ", weight=" + weight +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
-                ", user=" + user.getID() +
+                ", createdAt=" + createdAt +
+                ", user=" + (user != null ? user.getID() : null) +
                 '}';
     }
 }
