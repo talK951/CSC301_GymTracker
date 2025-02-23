@@ -1,12 +1,11 @@
 import type React from "react"
 import { useState, useEffect } from "react"
-import { View, FlatList, StyleSheet, Alert, ActivityIndicator, SafeAreaView } from "react-native"
-import { Button, Card, Title, Paragraph, Divider } from "react-native-paper"
+import { FlatList, StyleSheet, Alert, ActivityIndicator, SafeAreaView } from "react-native"
+import { Button, Title} from "react-native-paper"
 import { useRouter } from "expo-router"
 import apiClient from "../../utils/apiClient"
 import type { ApiResponse, WorkoutsResponseData, Workout } from "@/types/api"
 import { getCurrentUserId } from "@/utils/authHelpers"
-import { Ionicons } from "@expo/vector-icons"
 import WorkoutCard from "@/components/WorkoutCard"
 
 const WorkoutsPage: React.FC = () => {
@@ -41,7 +40,7 @@ const WorkoutsPage: React.FC = () => {
       workoutId={item.id}
       startTime={item.startTime}
       endTime={item.endTime}
-      onPress={() => console.log('go to workout info page')}
+      onPress={() => router.push(`/workout-info/${item.id}`)}
     />
   )
 

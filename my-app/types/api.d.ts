@@ -12,7 +12,10 @@ export interface JwtResponseType {
 export interface WorkoutsResponseData {
     workouts: Workout[];
 }
-  
+
+export interface WorkoutResponseData {
+    workout: Workout;
+}
 
 export interface Workout {
     id: number;
