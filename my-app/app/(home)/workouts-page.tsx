@@ -7,6 +7,7 @@ import apiClient from "../../utils/apiClient"
 import type { ApiResponse, WorkoutsResponseData, Workout } from "@/types/api"
 import { getCurrentUserId } from "@/utils/authHelpers"
 import { Ionicons } from "@expo/vector-icons"
+import WorkoutCard from "@/components/WorkoutCard"
 
 const WorkoutsPage: React.FC = () => {
   const [workouts, setWorkouts] = useState<Workout[]>([])
@@ -36,31 +37,12 @@ const WorkoutsPage: React.FC = () => {
   }
 
   const renderWorkoutItem = ({ item }: { item: Workout }) => (
-    <Card style={styles.workoutCard}>
-      <Card.Content>
-        <Title style={styles.workoutTitle}>Workout #{item.id}</Title>
-        <View style={styles.timeContainer}>
-          <View style={styles.timeItem}>
-            <Ionicons name="time-outline" size={18} color="#6200EE" />
-            <Paragraph style={styles.timeText}>Start: {new Date(item.startTime).toLocaleTimeString()}</Paragraph>
-          </View>
-          <View style={styles.timeItem}>
-            <Ionicons name="time-outline" size={18} color="#6200EE" />
-            <Paragraph style={styles.timeText}>End: {new Date(item.endTime).toLocaleTimeString()}</Paragraph>
-          </View>
-        </View>
-        <Divider style={styles.divider} />
-        <Title style={styles.exercisesTitle}>Exercises</Title>
-        {item.exercises.map((exercise) => (
-          <View key={exercise.id} style={styles.exerciseContainer}>
-            <Ionicons name="barbell-outline" size={18} color="#6200EE" style={styles.exerciseIcon} />
-            <Paragraph style={styles.exerciseText}>
-              {exercise.exercise} – {exercise.sets}x{exercise.reps} @ {exercise.weight} lbs
-            </Paragraph>
-          </View>
-        ))}
-      </Card.Content>
-    </Card>
+    <WorkoutCard
+      workoutId={item.id}
+      startTime={item.startTime}
+      endTime={item.endTime}
+      onPress={() => console.log('go to workout info page')}
+    />
   )
 
   return (
