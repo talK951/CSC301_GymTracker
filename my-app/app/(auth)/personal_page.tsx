@@ -1,6 +1,8 @@
 import React from "react";
 import { ScrollView, View, Text, StyleSheet, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+// import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
 
 const {width, height} = Dimensions.get("window");
 
@@ -36,6 +38,21 @@ export default function PersonalPage() {
               </View>
             ))}
           </View>
+
+
+          {/* <div className="w-full p-4 bg-white shadow-md rounded-lg">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">Workout Overview</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="workout" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div> */}
 
 
           {/* Gym Progress Graph */}
