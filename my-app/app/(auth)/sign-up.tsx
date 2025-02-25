@@ -4,6 +4,7 @@ import { TextInput, Title } from "react-native-paper";
 import CustomButton from "../../components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import Constants from 'expo-constants';
 import axios from "axios";
 
 export default function SignUpScreen() {
@@ -15,6 +16,8 @@ export default function SignUpScreen() {
     email: "",
     password: "",
   });
+
+  const API_BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -34,7 +37,7 @@ export default function SignUpScreen() {
     }
 
     try {
-      const response = await axios.post("http://localhost:8080/api/user", {
+      const response = await axios.post(`${API_BASE_URL}/user`, {
         username: formData.username.toLowerCase(),
         name: formData.name.toLowerCase(),
         utorID: formData.utorid.toLowerCase(),

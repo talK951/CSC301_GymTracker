@@ -1,6 +1,8 @@
 import React from "react";
 import { View, FlatList, StyleSheet, Text, StatusBar, SafeAreaView } from "react-native";
-import { Title, Card } from "react-native-paper";
+import { Title, Card, Button } from "react-native-paper";
+import { useRouter } from "expo-router";
+import { deleteToken } from "../../utils/authStorage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const settingsOptions = [
@@ -10,6 +12,18 @@ const settingsOptions = [
 ];
 
 const SettingsPage = () => {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await deleteToken();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed", error);
+      alert("Logout failed, Please try again.");
+    }
+  };
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -27,6 +41,16 @@ const SettingsPage = () => {
             </Card>
           )}
         />
+        <View style={styles.logoutContainer}>
+          <Button
+            mode="contained"
+            onPress={handleLogout}
+            style={styles.logoutButton}
+            labelStyle={styles.logoutLabel}
+          >
+            Logout
+          </Button>
+        </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -68,6 +92,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#333",
     marginTop: 4,
+  },
+  logoutContainer: {
+    marginTop: 20,
+    alignItems: "center",
+    marginBottom: 2
+  },
+  logoutButton: {
+    backgroundColor: "#E53935",
+    width: "105%",
+  },
+  logoutLabel: {
+    color: "#FFF",
+    fontWeight: "bold",
   },
 });
 
