@@ -17,12 +17,13 @@ export default function PersonalPage() {
 
             {/* Day */}
             <View style={styles.weekRow}>
-              {["Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+              {["Mon", "Tues", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => (
                 <View key={index} style={styles.dayColumn}>
                   <Text style={styles.dayText}>{day}</Text>
                 </View>
               ))}
             </View>
+
 
             {/* week */}
             {Array.from({ length: 3 }).map((_, weekIndex) => (
@@ -35,6 +36,7 @@ export default function PersonalPage() {
               </View>
             ))}
           </View>
+
 
           {/* Gym Progress Graph */}
           <View style={styles.graphSection}>
@@ -57,10 +59,11 @@ export default function PersonalPage() {
             </View>
           </View>
 
+
           {/* Consistency */}
           <View style={styles.consistencySection}>
             <Text style={styles.sectionTitle}>📅 Consistency</Text>
-            <Text style={styles.consistencyHeader}>This month you...</Text>
+            <Text style={styles.consistencyHeader}>This month you..</Text>
             {consistencyData.map((item, index) => (
               <Text key={index} style={styles.consistencyItem}>• {item}</Text>
             ))}
