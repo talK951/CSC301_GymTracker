@@ -1,39 +1,38 @@
-import type React from "react"
-import { useState, useEffect } from "react"
-import { FlatList, StyleSheet, Alert, ActivityIndicator, SafeAreaView } from "react-native"
-import { Button, Title} from "react-native-paper"
-import { useRouter } from "expo-router"
-import apiClient from "../../utils/apiClient"
-import type { ApiResponse, WorkoutsResponseData, Workout } from "@/types/api"
-import { getCurrentUserId } from "@/utils/authHelpers"
-import WorkoutCard from "@/components/WorkoutCard"
+import React, { useState, useEffect } from "react";
+import { FlatList, StyleSheet, Alert, ActivityIndicator, SafeAreaView } from "react-native";
+import { Button, Title } from "react-native-paper";
+import { useRouter } from "expo-router";
+import apiClient from "../../utils/apiClient";
+import type { ApiResponse, WorkoutsResponseData, Workout } from "@/types/api";
+import { getCurrentUserId } from "@/utils/authHelpers";
+import WorkoutCard from "@/components/WorkoutCard";
 
-const WorkoutsPage: React.FC = () => {
-  const [workouts, setWorkouts] = useState<Workout[]>([])
-  const [loading, setLoading] = useState<boolean>(false)
-  const router = useRouter()
+export default function WorkoutsPage() {
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   useEffect(() => {
-    fetchWorkouts()
-  }, [])
+    fetchWorkouts();
+  }, []);
 
   const fetchWorkouts = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const userId = await getCurrentUserId()
+      const userId = await getCurrentUserId();
       if (userId === null) {
-        Alert.alert("Error", "User not authenticated")
-        return
+        showAlert("Error", "User not authenticated");
+        return;
       }
-      const response = await apiClient.get<ApiResponse<WorkoutsResponseData>>(`/workout/user/${userId}`)
+      const response = await apiClient.get<ApiResponse<WorkoutsResponseData>>(`/workout/user/${userId}`);
       setWorkouts(response.data.data.workouts);
     } catch (error) {
-      console.error(error)
-      Alert.alert("Error", "Failed to fetch workouts.")
+      console.error(error);
+      showAlert("Error", "Failed to fetch workouts.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const renderWorkoutItem = ({ item }: { item: Workout }) => (
     <WorkoutCard
@@ -42,7 +41,7 @@ const WorkoutsPage: React.FC = () => {
       endTime={item.endTime}
       onPress={() => router.push(`/workout-info/${item.id}`)}
     />
-  )
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -59,14 +58,14 @@ const WorkoutsPage: React.FC = () => {
       )}
       <Button
         mode="contained"
-        // onPress={() => router.push("/(auth)/add-workout")}
         style={styles.addButton}
         icon="plus"
+        // onPress={() => router.push("/(home)/add-workout")}
       >
         Add Workout
       </Button>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -80,54 +79,10 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     marginHorizontal: 16,
     color: "#333",
+    textAlign: "center",
   },
   listContainer: {
     padding: 16,
-  },
-  workoutCard: {
-    marginBottom: 16,
-    elevation: 4,
-    borderRadius: 12,
-  },
-  workoutTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#333",
-  },
-  timeContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  timeItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  timeText: {
-    marginLeft: 4,
-    color: "#666",
-  },
-  divider: {
-    marginVertical: 12,
-  },
-  exercisesTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#333",
-  },
-  exerciseContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  exerciseIcon: {
-    marginRight: 8,
-  },
-  exerciseText: {
-    flex: 1,
-    color: "#666",
   },
   addButton: {
     margin: 16,
@@ -138,7 +93,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-})
+});
 
-export default WorkoutsPage
-
+// Helper to show alerts that work on both web and mobile
+function showAlert(title: string, message: string) {
+  if (typeof window !== "undefined" && window.alert) {
+    window.alert(`${title}: ${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+}

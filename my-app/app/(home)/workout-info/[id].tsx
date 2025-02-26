@@ -1,90 +1,105 @@
-import type React from "react"
-import { useState, useEffect } from "react"
-import { View, StyleSheet, ScrollView, Alert, Text } from "react-native"
-import { TextInput, Button, Title, Card } from "react-native-paper"
-import { useRouter, useLocalSearchParams } from "expo-router"
-import apiClient from "@/utils/apiClient"
-import type { Exercise, Workout, ApiResponse, WorkoutResponseData } from "@/types/api"
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, ScrollView, Platform, Alert, Text } from "react-native";
+import { TextInput, Button, Title, Card } from "react-native-paper";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import apiClient from "@/utils/apiClient";
+import type { ApiResponse, Exercise, Workout, WorkoutResponseData } from "@/types/api";
 
-const WorkoutInfo: React.FC = () => {
-  const { id } = useLocalSearchParams<{ id: string }>()
-  const router = useRouter()
-  const [workout, setWorkout] = useState<Workout | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
-  const [duration, setDuration] = useState<string>("")
-  const [exercises, setExercises] = useState<Exercise[]>([])
+function showConfirm(title: string, message: string): Promise<boolean> {
+  if (Platform.OS === "web") {
+    return Promise.resolve(window.confirm(`${title}\n\n${message}`));
+  } else {
+    return new Promise((resolve) => {
+      Alert.alert(title, message, [
+        { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+        { text: "Delete", onPress: () => resolve(true), style: "destructive" },
+      ]);
+    });
+  }
+}
+
+function showAlert(title: string, message: string) {
+  if (Platform.OS === "web") {
+    window.alert(`${title}: ${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+}
+
+export default function WorkoutInfo() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+  const [workout, setWorkout] = useState<Workout | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [duration, setDuration] = useState<string>("");
+  const [exercises, setExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
-    fetchWorkout()
-  }, [])
+    fetchWorkout();
+  }, []);
 
   const fetchWorkout = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await apiClient.get<ApiResponse<WorkoutResponseData>>(`/workout/${id}`)
-      const fetchedWorkout = response.data.data.workout
-      setWorkout(fetchedWorkout)
+      const response = await apiClient.get<ApiResponse<WorkoutResponseData>>(`/workout/${id}`);
+      const fetchedWorkout = response.data.data.workout;
+      setWorkout(fetchedWorkout);
       const durationInMinutes = Math.round(
-        (new Date(fetchedWorkout.endTime).getTime() - new Date(fetchedWorkout.startTime).getTime()) / 60000,
-      )
-      setDuration(durationInMinutes.toString())
-      setExercises(fetchedWorkout.exercises || [])
+        (new Date(fetchedWorkout.endTime).getTime() - new Date(fetchedWorkout.startTime).getTime()) / 60000
+      );
+      setDuration(durationInMinutes.toString());
+      setExercises(fetchedWorkout.exercises || []);
     } catch (error) {
-      console.error("Error fetching workout:", error)
-      Alert.alert("Error", "Failed to load workout details.")
+      console.error("Error fetching workout:", error);
+      showAlert("Error", "Failed to load workout details.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const updateExerciseField = (exerciseId: number, field: keyof Exercise, value: string | number) => {
-    setExercises((prevExercises) => prevExercises.map((ex) => (ex.id === exerciseId ? { ...ex, [field]: value } : ex)))
-  }
+    setExercises((prevExercises) =>
+      prevExercises.map((ex) => (ex.id === exerciseId ? { ...ex, [field]: value } : ex))
+    );
+  };
 
   const handleUpdateWorkout = async () => {
-    if (!workout) return
+    if (!workout) return;
     const updatedWorkout = {
       ...workout,
       exercises,
-    }
+    };
 
     try {
-      await apiClient.put<ApiResponse<Workout>>(`/workout/${workout.id}`, updatedWorkout)
-      Alert.alert("Success", "Workout updated successfully.")
-      router.push("/(home)/nav_bar")
+      await apiClient.put<ApiResponse<Workout>>(`/workout/${workout.id}`, updatedWorkout);
+      showAlert("Success", "Workout updated successfully.");
+      router.push("/(home)/nav_bar");
     } catch (error) {
-      console.error("Update failed:", error)
-      Alert.alert("Error", "Failed to update workout.")
+      console.error("Update failed:", error);
+      showAlert("Error", "Failed to update workout.");
     }
-  }
+  };
 
   const handleDeleteWorkout = async () => {
-    if (!workout) return
-    Alert.alert("Delete Workout", "Are you sure you want to delete this workout?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        onPress: async () => {
-          try {
-            await apiClient.delete(`/workout/${workout.id}`)
-            Alert.alert("Success", "Workout deleted successfully.")
-            router.push("/(home)/nav_bar")
-          } catch (error) {
-            console.error("Delete failed:", error)
-            Alert.alert("Error", "Failed to delete workout.")
-          }
-        },
-        style: "destructive",
-      },
-    ])
-  }
+    if (!workout) return;
+    const confirmed = await showConfirm("Delete Workout", "Are you sure you want to delete this workout?");
+    if (!confirmed) return;
+    try {
+      await apiClient.delete(`/workout/${workout.id}`);
+      showAlert("Success", "Workout deleted successfully.");
+      router.push("/(home)/workouts-page");
+    } catch (error) {
+      console.error("Delete failed:", error);
+      showAlert("Error", "Failed to delete workout.");
+    }
+  };
 
   if (loading || !workout) {
     return (
       <View style={styles.loaderContainer}>
         <Title style={styles.loaderText}>Loading...</Title>
       </View>
-    )
+    );
   }
 
   return (
@@ -114,7 +129,14 @@ const WorkoutInfo: React.FC = () => {
                 label="Sets"
                 value={String(exercise.sets)}
                 keyboardType="numeric"
-                onChangeText={(text) => updateExerciseField(exercise.id, "sets", Number.parseInt(text))}
+                onChangeText={(text) => {
+                  const parsedValue = Number.parseInt(text);
+                  updateExerciseField(
+                    exercise.id,
+                    "sets",
+                    text === "" || isNaN(parsedValue) ? 0 : parsedValue
+                  );
+                }}
                 style={[styles.input, styles.statInput]}
                 mode="outlined"
               />
@@ -122,7 +144,14 @@ const WorkoutInfo: React.FC = () => {
                 label="Reps"
                 value={String(exercise.reps)}
                 keyboardType="numeric"
-                onChangeText={(text) => updateExerciseField(exercise.id, "reps", Number.parseInt(text))}
+                onChangeText={(text) => {
+                  const parsedValue = Number.parseInt(text);
+                  updateExerciseField(
+                    exercise.id,
+                    "reps",
+                    text === "" || isNaN(parsedValue) ? 0 : parsedValue
+                  );
+                }}
                 style={[styles.input, styles.statInput]}
                 mode="outlined"
               />
@@ -130,7 +159,14 @@ const WorkoutInfo: React.FC = () => {
                 label="Weight"
                 value={String(exercise.weight)}
                 keyboardType="numeric"
-                onChangeText={(text) => updateExerciseField(exercise.id, "weight", Number.parseFloat(text))}
+                onChangeText={(text) => {
+                  const parsedValue = Number.parseFloat(text);
+                  updateExerciseField(
+                    exercise.id,
+                    "weight",
+                    text === "" || isNaN(parsedValue) ? 0 : parsedValue
+                  );
+                }}
                 style={[styles.input, styles.statInput]}
                 mode="outlined"
               />
@@ -143,12 +179,12 @@ const WorkoutInfo: React.FC = () => {
         <Button mode="contained" onPress={handleUpdateWorkout} style={styles.updateButton}>
           Update Workout
         </Button>
-        <Button mode="outlined" onPress={handleDeleteWorkout} style={styles.deleteButton}>
+        <Button mode="contained" onPress={handleDeleteWorkout} style={styles.deleteButton}>
           Delete Workout
         </Button>
       </View>
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -205,7 +241,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   deleteButton: {
-    borderColor: "#FF3B30",
+    backgroundColor: "#ab3d37",
     borderWidth: 1,
   },
   loaderContainer: {
@@ -218,6 +254,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#333",
   },
-})
-
-export default WorkoutInfo
+});
