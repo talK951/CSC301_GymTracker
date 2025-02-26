@@ -3,6 +3,10 @@ package com.utm.gym_tracker.user;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.utm.gym_tracker.workout.Workout;
 
 @Entity
 @Table(name = "users")
@@ -32,6 +36,9 @@ public class User {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Workout> workouts = new ArrayList<>();
 
     public User(String username, String name, String utorID, String email, String password) {
         this.username = username;
@@ -107,5 +114,13 @@ public class User {
 
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
+    }
+
+    public List<Workout> getWorkouts() {
+        return workouts;
+    }
+
+    public void setWorkouts(List<Workout> workouts) {
+        this.workouts = workouts;
     }
 }
