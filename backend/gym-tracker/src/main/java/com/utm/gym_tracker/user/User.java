@@ -4,6 +4,7 @@ import com.utm.gym_tracker.group.Group;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -60,6 +61,18 @@ public class User {
                 ", profilePicture='" + profilePicture + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     public Long getID() {
