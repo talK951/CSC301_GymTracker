@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, StyleSheet, ScrollView, Platform, Alert, TouchableOpacity } from "react-native";
-import { TextInput, Button, Title } from "react-native-paper";
+import { Button, Title, Text, TextInput } from "react-native-paper";
 import { useNavigation, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import apiClient from "@/utils/apiClient";
@@ -9,7 +9,6 @@ import ExerciseInfoCard from "@/components/ExerciseInfoCard";
 
 // Helper functions for cross-platform alerts
 function showAlert(title: string, message: string) {
-
     if (Platform.OS === "web") {
       window.alert(`${title}: ${message}`);
     } else {
@@ -20,9 +19,9 @@ function showAlert(title: string, message: string) {
 export default function AddWorkout() {
     const router = useRouter();
     const navigation = useNavigation();
-    
-    const [startTime, setStartTime] = useState<string>("");
-    const [endTime, setEndTime] = useState<string>("");
+
+    const [startDate, setStartDate] = useState<Date>(new Date());
+    const [endDate, setEndDate] = useState<Date | null>(null);
     const [exercises, setExercises] = useState<Exercise[]>([]);
 
     const addExercise = () => {
@@ -58,7 +57,7 @@ export default function AddWorkout() {
     };
 
     const handleAddWorkout = async () => {
-      if (!startTime || !endTime) {
+      if (!startDate || !endDate) {
         showAlert("Error", "Please fill in both start time and end time.");
         return;
       }
@@ -83,10 +82,10 @@ export default function AddWorkout() {
       const cleanedExercises = exercises.map(({ id, createdAt, ...rest }) => rest) as CreateExerciseDTO[];
 
       const workout: WorkoutDTO = {
-        startTime,
-        endTime,
+        startTime: startDate.toISOString(),
+        endTime: endDate.toISOString(),
         exercises: cleanedExercises,
-      };
+      }
 
       try {
         const response = await apiClient.post<ApiResponse<WorkoutResponseData>>("/workout", workout);
@@ -98,6 +97,38 @@ export default function AddWorkout() {
       }
     };
 
+    const formatDateForInput = (date: Date) => {
+      return date.toISOString().split("T")[0];
+    }
+  
+    const formatTimeForInput = (date: Date) => {
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+    }
+
+    const handleDateChange = (isStart: boolean, value: string) => {
+      if (!value) return;
+      const defaultEnd = new Date(startDate.getTime() + 3600000);
+      const baseDate = isStart ? startDate : (endDate ?? defaultEnd);
+      const newDate = new Date(baseDate);
+      const parts = value.split("-");
+      newDate.setFullYear(Number(parts[0]));
+      newDate.setMonth(Number(parts[1]) - 1);
+      newDate.setDate(Number(parts[2]));
+      isStart ? setStartDate(newDate) : setEndDate(newDate);
+    }
+    
+    const handleTimeChange = (isStart: boolean, value: string) => {
+      if (!value) return;
+      const [hours, minutes] = value.split(":");
+      if (!hours || !minutes) return;
+      const defaultEnd = new Date(startDate.getTime() + 3600000);
+      const baseDate = isStart ? startDate : (endDate ?? defaultEnd);
+      const newDate = new Date(baseDate);
+      newDate.setHours(Number.parseInt(hours));
+      newDate.setMinutes(Number.parseInt(minutes));
+      isStart ? setStartDate(newDate) : setEndDate(newDate);
+    }
+
   return (
     <ScrollView style={styles.container}>
         <View style={styles.header}>
@@ -107,23 +138,61 @@ export default function AddWorkout() {
             <Title style={styles.headerTitle}>Add Workout</Title>
         </View>
 
-        <TextInput
-          label="Start Time"
-          value={startTime}
-          onChangeText={setStartTime}
-          style={styles.input}
-          mode="outlined"
-          placeholder="2023-06-10T07:30:00"
-        />
-        <TextInput
-          label="End Time"
-          value={endTime}
-          onChangeText={setEndTime}
-          style={styles.input}
-          mode="outlined"
-          placeholder="2023-06-10T08:30:00"
-        />
-
+        {Platform.OS === "web" ? (
+        <>
+          <View style={styles.webDateTimeContainer}>
+            <Text style={styles.dateTimeLabel}>Start Time:</Text>
+            <View style={styles.dateTimeInputGroup}>
+              <input
+                type="date"
+                value={formatDateForInput(startDate)}
+                onChange={(e) => handleDateChange(true, e.target.value)}
+                style={styles.webDateInput}
+              />
+              <input
+                type="time"
+                value={formatTimeForInput(startDate)}
+                onChange={(e) => handleTimeChange(true, e.target.value)}
+                style={styles.webTimeInput}
+              />
+            </View>
+          </View>
+          <View style={styles.webDateTimeContainer}>
+            <Text style={styles.dateTimeLabel}>End Time:</Text>
+            <View style={styles.dateTimeInputGroup}>
+              <input
+                type="date"
+                value={endDate ? formatDateForInput(endDate) : ""}
+                onChange={(e) => handleDateChange(false, e.target.value)}
+                style={styles.webDateInput}
+              />
+              <input
+                type="time"
+                value={endDate ? formatTimeForInput(endDate) : ""}
+                onChange={(e) => handleTimeChange(false, e.target.value)}
+                style={styles.webTimeInput}
+              />
+            </View>
+          </View>
+        </>
+      ) : (
+        <>
+          <TextInput
+            label="Start Time"
+            value={startDate.toLocaleString()}
+            onFocus={() => showAlert("Info", "Implement a date picker here for mobile")}
+            style={styles.input}
+            mode="outlined"
+          />
+          <TextInput
+            label="End Time"
+            value={endDate ? endDate.toLocaleString() : ""}
+            onFocus={() => showAlert("Info", "Implement a date picker here for mobile")}
+            style={styles.input}
+            mode="outlined"
+          />
+        </>
+      )}
         <Title style={styles.subTitle}>Exercises</Title>
         {exercises.map((exercise, index) => (
           <ExerciseInfoCard
@@ -171,6 +240,35 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#333",
+  },
+  webDateTimeContainer: {
+    marginBottom: 12,
+  },
+  dateTimeLabel: {
+    fontSize: 16,
+    marginBottom: 4,
+    color: "#333",
+  },
+  dateTimeInputGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  webDateInput: {
+    flex: 1,
+    marginRight: 8,
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#6200EE",
+    fontSize: 16,
+  },
+  webTimeInput: {
+    width: "40%",
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#6200EE",
+    fontSize: 16,
   },
   input: {
     backgroundColor: "#FFFFFF",

@@ -68,6 +68,18 @@ export default function WorkoutInfo() {
 
   const handleUpdateWorkout = async () => {
     if (!workout) return;
+
+    for (const exercise of exercises) {
+      if (!exercise.exercise.trim()) {
+        showAlert("Error", "Every exercise must have a valid name.");
+        return;
+      }
+      if (exercise.sets < 1 || exercise.reps < 1 || exercise.weight < 1) {
+        showAlert("Error", "Sets, reps, and weight for each exercise must be at least 1.");
+        return;
+      }
+    }
+    
     const updatedWorkout = {
       ...workout,
       exercises,
