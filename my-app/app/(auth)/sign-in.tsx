@@ -1,19 +1,38 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Title } from "react-native-paper";
 import CustomButton from "../../components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";
+import axios from "axios";
 
 export default function SignInScreen() {
-  const [utorid, setUtorid] = useState("");
+  const [utorID, setUtorid] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    if (!utorid || !password) {
+  const handleLogin = async () => {
+    if (!utorID || !password) {
       alert("Please fill in all fields");
       return;
     }
-    alert("Logged in successfully!");
+
+    try {
+      const response = await axios.post("", {
+        utorID,
+        password,
+      });
+
+      if (response.data.token) {
+        Alert.alert("Logged in successfully!");
+      } else {
+        Alert.alert("Invalid credentials, please try again.");
+      }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        Alert.alert("Error", error.response?.data?.message || "Login failed. Please try again.");
+      } else {
+        Alert.alert("Error", "An unexpected error occurred.");
+      }
+    }
   };
 
   return (
@@ -25,7 +44,7 @@ export default function SignInScreen() {
         <Title style={styles.title}>Login</Title>
         <TextInput
           label="UTORid"
-          value={utorid}
+          value={utorID}
           onChangeText={setUtorid}
           mode="outlined"
           style={styles.input}

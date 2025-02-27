@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Title } from "react-native-paper";
 import CustomButton from "../../components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";
+import axios from "axios";
 
 export default function SignUpScreen() {
   const [formData, setFormData] = useState({
     username: "",
+    name: "",
     utorid: "",
     email: "",
     password: "",
@@ -16,10 +18,10 @@ export default function SignUpScreen() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSignUp = () => {
-    const { username, utorid, email, password } = formData;
+  const handleSignUp = async () => {
+    const { username, name, utorid, email, password } = formData;
 
-    if (!username || !utorid || !email || !password) {
+    if (!username || !name || !utorid || !email || !password) {
       alert("Please fill in all fields");
       return;
     }
@@ -29,20 +31,41 @@ export default function SignUpScreen() {
       return;
     }
 
-    alert("Registered successfully!");
+    try {
+      const response = await axios.post("http://localhost:8080/api/user", {
+        username: formData.username,
+        name: formData.name,
+        utorID: formData.utorid,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      Alert.alert("User created successfully!");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        Alert.alert("Error", error.response?.data?.message || "Failed to register. Please try again.");
+      } else {
+        Alert.alert("Error", "An unexpected error occurred.");
+      }
+    }
   };
 
   return (
-    <LinearGradient
-      colors={["#1A1A1A", "#333333"]}
-      style={styles.background}
-    >
+    <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
       <View style={styles.container}>
         <Title style={styles.title}>Sign Up</Title>
         <TextInput
           label="Username"
           value={formData.username}
           onChangeText={(value) => handleInputChange("username", value)}
+          mode="outlined"
+          style={styles.input}
+          theme={{ colors: { primary: "#4CAF50", background: "#FFF" } }}
+        />
+        <TextInput
+          label="Name"
+          value={formData.name}
+          onChangeText={(value) => handleInputChange("name", value)}
           mode="outlined"
           style={styles.input}
           theme={{ colors: { primary: "#4CAF50", background: "#FFF" } }}
