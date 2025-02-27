@@ -1,5 +1,6 @@
 package com.utm.gym_tracker.group;
 
+import ch.qos.logback.core.joran.spi.DefaultClass;
 import com.utm.gym_tracker.user.User;
 import jakarta.persistence.*;
 
@@ -20,9 +21,11 @@ public class Group {
     @ManyToMany
     private HashMap<Long, User> users;
 
-    public Group(String name, HashMap<Long, User> users) {
+    public Group() {}
+
+    public Group(String name) {
         this.name = name;
-        this.users = users;
+//        this.users = new HashMap<>();
     }
 
     public Long getId() {

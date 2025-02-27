@@ -28,8 +28,8 @@ public class GroupController {
         return new ResponseEntity<>(groups, HttpStatus.OK);
     }
 
-    @GetMapping()
-    public ResponseEntity<Group> getGroupByName(@RequestParam String groupName) {
+    @GetMapping("/{groupName}")
+    public ResponseEntity<Group> getGroupByName(@PathVariable String groupName) {
         Optional<Group> group = this.groupService.getGroupByName(groupName);
         return group.map(value
                     -> new ResponseEntity<>(value, HttpStatus.OK))
@@ -38,8 +38,8 @@ public class GroupController {
         );
     }
 
-    @GetMapping()
-    public ResponseEntity<Set<User>> getGroupMembers(@RequestParam String groupName) {
+    @GetMapping("/{groupName}/members")
+    public ResponseEntity<Set<User>> getGroupMembers(@PathVariable String groupName) {
         Optional<Group> group = this.groupService.getGroupByName(groupName);
         if (group.isEmpty()) { return new ResponseEntity<>(HttpStatus.NOT_FOUND); }
         Optional<Set<User>> users = this.groupService.getMembers(group.get());
@@ -60,7 +60,7 @@ public class GroupController {
                 );
     }
 
-    @PostMapping()
+    @PostMapping("/{groupName}/members")
     public ResponseEntity<User> addUser(@RequestParam String groupName,
                                         @RequestBody User user) {
         Optional<Group> group = this.groupService.getGroupByName(groupName);
