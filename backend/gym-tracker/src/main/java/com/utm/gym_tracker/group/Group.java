@@ -3,7 +3,8 @@ package com.utm.gym_tracker.group;
 import com.utm.gym_tracker.user.User;
 import jakarta.persistence.*;
 
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Optional;
 
 @Entity
 @Table(name = "groups")
@@ -17,11 +18,11 @@ public class Group {
     private String name;
 
     @ManyToMany
-    private Set<User> users;
+    private HashMap<Long, User> users;
 
-    public Group(String name, Set<User> user) {
+    public Group(String name, HashMap<Long, User> users) {
         this.name = name;
-        this.users = user;
+        this.users = users;
     }
 
     public Long getId() {
@@ -32,7 +33,7 @@ public class Group {
         return name;
     }
 
-    public Set<User> getUsers() {
+    public HashMap<Long, User> getUsers() {
         return users;
     }
 
@@ -41,6 +42,12 @@ public class Group {
     }
 
     public void addUser(User user) {
-        this.users.add(user);
+        this.users.put(user.getID(), user);
+    }
+
+    public Optional<User> getUserByID(Long id) {
+        User user = this.users.get(id);
+        if (user == null) { return Optional.empty(); }
+        return Optional.of(user);
     }
 }
