@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons'; // import an icon set
 import PersonalPage from "./personal_page";
 import SettingsPage from "./settings_page";
 import DiscoverPage from "./discover-page";
+import GroupsPage from "./groups_page"
 
 const page = createBottomTabNavigator();
 
@@ -24,7 +25,7 @@ export default function navigateBar() {
       }} />
       <page.Screen 
         name="Groups Page" 
-        component={TestScreen} options={{
+        component={GroupsPage} options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
