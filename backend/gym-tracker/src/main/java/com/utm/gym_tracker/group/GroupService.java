@@ -33,13 +33,9 @@ public class GroupService {
         }
     }
 
-//    public Optional<Group> getGroupByName(String name) {
-//        return this.groupRepository.findByName(name);
-//    }
-//
-//    public Optional<Group> getGroupsByMember(String member) {
-//        return this.groupRepository.findByMember(member);
-//    }
+    public Optional<Group> getGroupByName(String name) {
+        return this.groupRepository.findByName(name);
+    }
 
     public Optional<Set<User>> getMembers(Group group) {
         Set<User> users = group.getUsers();
