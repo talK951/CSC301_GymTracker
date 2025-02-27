@@ -2,7 +2,7 @@ import React from "react";
 import { View, FlatList, StyleSheet, Text, StatusBar, SafeAreaView } from "react-native";
 import { Title, Card, Button } from "react-native-paper";
 import { useRouter } from "expo-router";
-import { deleteToken } from "../../utils/authStorage";
+import { deleteToken } from "@/utils/authStorage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const settingsOptions = [

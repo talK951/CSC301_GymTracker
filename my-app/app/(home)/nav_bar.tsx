@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons'; // import an icon set
 import PersonalPage from "./personal_page";
 import SettingsPage from "./settings_page";
 import DiscoverPage from "./discover-page";
+import WorkoutsPage from "./workouts-page";
 
 const page = createBottomTabNavigator();
 
@@ -19,6 +20,15 @@ export default function navigateBar() {
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
+          ),
+        headerShown: false
+      }} />
+      <page.Screen 
+        name="Workouts Page" 
+        component={WorkoutsPage} 
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="barbell-outline" size={size} color={color} />
           ),
         headerShown: false
       }} />
