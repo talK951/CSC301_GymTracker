@@ -38,7 +38,7 @@ public class GroupService {
     }
 
     public Optional<Set<User>> getMembers(Group group) {
-        Set<User> users = group.getUsers();
+        Set<User> users = (Set<User>) group.getUsers().values();
         if (users.isEmpty()) { return Optional.empty(); }
         return Optional.of(users);
     }
@@ -49,6 +49,10 @@ public class GroupService {
             return Optional.empty();
         }
         if (!existingGroup.get().equals(group)) {
+            return Optional.empty();
+        }
+        Optional<User> existingUser = existingGroup.get().getUserByID(user.getID());
+        if (existingUser.isEmpty() || existingUser.get().equals(user)) {
             return Optional.empty();
         }
         existingGroup.get().addUser(user);
