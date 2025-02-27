@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Platform, Alert, Text } from "react-native";
-import { TextInput, Button, Title, Card } from "react-native-paper";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { View, StyleSheet, ScrollView, Platform, Alert, Text, TouchableOpacity } from "react-native";
+import { Button, Title, Card } from "react-native-paper";
+import { useRouter, useLocalSearchParams, useNavigation } from "expo-router";
 import apiClient from "@/utils/apiClient";
+import { Ionicons } from "@expo/vector-icons";
 import type { ApiResponse, Exercise, Workout, WorkoutResponseData } from "@/types/api";
+import ExerciseInfoCard from "@/components/ExerciseInfoCard";
 
 function showConfirm(title: string, message: string): Promise<boolean> {
   if (Platform.OS === "web") {
@@ -33,6 +35,7 @@ export default function WorkoutInfo() {
   const [loading, setLoading] = useState<boolean>(false);
   const [duration, setDuration] = useState<string>("");
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchWorkout();
@@ -87,7 +90,7 @@ export default function WorkoutInfo() {
     try {
       await apiClient.delete(`/workout/${workout.id}`);
       showAlert("Success", "Workout deleted successfully.");
-      router.push("/(home)/workouts-page");
+      router.push("/(home)/nav_bar");
     } catch (error) {
       console.error("Delete failed:", error);
       showAlert("Error", "Failed to delete workout.");
@@ -107,6 +110,9 @@ export default function WorkoutInfo() {
       <Card style={styles.card}>
         <Card.Content>
           <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={28} color="#6200EE"/>
+            </TouchableOpacity>
             <Title style={styles.title}>Session {workout.id}</Title>
             <Text style={styles.durationText}>{duration} min</Text>
           </View>
@@ -114,65 +120,12 @@ export default function WorkoutInfo() {
       </Card>
 
       {exercises.map((exercise, index) => (
-        <Card key={exercise.id} style={styles.card}>
-          <Card.Content>
-            <Title style={styles.exerciseTitle}>Exercise {index + 1}</Title>
-            <TextInput
-              label="Exercise Name"
-              value={exercise.exercise}
-              onChangeText={(text) => updateExerciseField(exercise.id, "exercise", text)}
-              style={styles.input}
-              mode="outlined"
-            />
-            <View style={styles.exerciseStats}>
-              <TextInput
-                label="Sets"
-                value={String(exercise.sets)}
-                keyboardType="numeric"
-                onChangeText={(text) => {
-                  const parsedValue = Number.parseInt(text);
-                  updateExerciseField(
-                    exercise.id,
-                    "sets",
-                    text === "" || isNaN(parsedValue) ? 0 : parsedValue
-                  );
-                }}
-                style={[styles.input, styles.statInput]}
-                mode="outlined"
-              />
-              <TextInput
-                label="Reps"
-                value={String(exercise.reps)}
-                keyboardType="numeric"
-                onChangeText={(text) => {
-                  const parsedValue = Number.parseInt(text);
-                  updateExerciseField(
-                    exercise.id,
-                    "reps",
-                    text === "" || isNaN(parsedValue) ? 0 : parsedValue
-                  );
-                }}
-                style={[styles.input, styles.statInput]}
-                mode="outlined"
-              />
-              <TextInput
-                label="Weight"
-                value={String(exercise.weight)}
-                keyboardType="numeric"
-                onChangeText={(text) => {
-                  const parsedValue = Number.parseFloat(text);
-                  updateExerciseField(
-                    exercise.id,
-                    "weight",
-                    text === "" || isNaN(parsedValue) ? 0 : parsedValue
-                  );
-                }}
-                style={[styles.input, styles.statInput]}
-                mode="outlined"
-              />
-            </View>
-          </Card.Content>
-        </Card>
+        <ExerciseInfoCard
+          key={exercise.id}
+          exercise={exercise}
+          index={index}
+          onUpdate={updateExerciseField}
+        />
       ))}
 
       <View style={styles.buttonContainer}>
@@ -210,6 +163,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
     flex: 1,
+    textAlign: "center",
   },
   durationText: {
     fontSize: 16,

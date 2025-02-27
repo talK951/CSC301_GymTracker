@@ -33,4 +33,11 @@ export interface Exercise {
     weight: number;
     createdAt: string;
 }
-  
+
+export type CreateExerciseDTO = Omit<Exercise, "id" | "createdAt">;
+
+export type WorkoutDTO = {
+    startTime: string;
+    endTime: string;
+    exercises: CreateExerciseDTO[];
+};

@@ -60,7 +60,7 @@ export default function WorkoutsPage() {
         mode="contained"
         style={styles.addButton}
         icon="plus"
-        // onPress={() => router.push("/(home)/add-workout")}
+        onPress={() => router.push("/add-workout")}
       >
         Add Workout
       </Button>
