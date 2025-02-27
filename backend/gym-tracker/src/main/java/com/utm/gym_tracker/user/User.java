@@ -1,8 +1,10 @@
 package com.utm.gym_tracker.user;
 
+import com.utm.gym_tracker.group.Group;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -32,6 +34,9 @@ public class User {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @ManyToMany
+    private Set<Group> groups;
 
     public User(String username, String name, String utorID, String email, String password) {
         this.username = username;
@@ -81,6 +86,10 @@ public class User {
         return utorID;
     }
 
+    public Set<Group> getGroups() {
+        return groups;
+    }
+
     public void setUtorID(String utorID) {
         this.utorID = utorID;
     }
@@ -107,5 +116,9 @@ public class User {
 
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
+    }
+
+    public void addGroup(Group group) {
+        this.groups.add(group);
     }
 }
