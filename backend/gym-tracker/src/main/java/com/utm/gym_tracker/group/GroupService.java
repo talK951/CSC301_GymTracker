@@ -41,11 +41,21 @@ public class GroupService {
 //        return this.groupRepository.findByMember(member);
 //    }
 
-    public Optional<Set<User>> getMembers(String groupName) {
-        Optional<Group> group = this.groupRepository.findByName(groupName);
-        if (group.isEmpty()) { return Optional.empty(); }
-        Set<User> users = group.get().getUsers();
+    public Optional<Set<User>> getMembers(Group group) {
+        Set<User> users = group.getUsers();
         if (users.isEmpty()) { return Optional.empty(); }
         return Optional.of(users);
+    }
+
+    public Optional<User> addUser(Group group, User user) {
+        Optional<Group> existingGroup = this.groupRepository.findByName(group.getName());
+        if (existingGroup.isEmpty()) {
+            return Optional.empty();
+        }
+        if (!existingGroup.get().equals(group)) {
+            return Optional.empty();
+        }
+        existingGroup.get().addUser(user);
+        return Optional.of(user);
     }
 }
