@@ -38,6 +38,15 @@ public class Group {
 //        this.users = new HashMap<>();
     }
 
+    @Override
+    public String toString() {
+        return "Group{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", users=" + users +
+                '}';
+    }
+
     public Long getID() {
         return id;
     }

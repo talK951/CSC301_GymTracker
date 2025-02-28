@@ -36,9 +36,17 @@ public class UserController {
     }
 
     @GetMapping()
-    public ResponseEntity<User> getUserByEmail(
-            @RequestParam("email") String email) {
-        Optional<User> user = this.userService.getUserByEmail(email);
+    public ResponseEntity<User> getUser(
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "username", required = false) String username) {
+        Optional<User> user;
+        if (email != null) {
+            user = this.userService.getUserByEmail(email);
+        } else if (username != null) {
+            user = this.userService.getUserByUsername(username);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         return user.map(value
                         -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(()
