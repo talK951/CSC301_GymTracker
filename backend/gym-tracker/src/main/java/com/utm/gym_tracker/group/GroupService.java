@@ -14,7 +14,6 @@ public class GroupService {
     private final GroupRepository groupRepository;
 
     @Autowired
-
     public GroupService(GroupRepository groupRepository) {
         this.groupRepository = groupRepository;
     }
@@ -25,10 +24,10 @@ public class GroupService {
 
     public Optional<Group> createGroup(Group group) {
         try {
-            this.groupRepository.save(group);
-            return Optional.of(group);
+            Group savedGroup = this.groupRepository.save(group);
+            return Optional.of(savedGroup);
         } catch (DataIntegrityViolationException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error creating group: " + e.getMessage());
             return Optional.empty();
         }
     }
@@ -37,31 +36,57 @@ public class GroupService {
         return this.groupRepository.findByName(name);
     }
 
+    public Optional<Group> getGroupByID(Long id) {
+        return this.groupRepository.findById(id);
+    }
+
+    public List<Group> getGroupsForUser(User user) {
+        return groupRepository.findByUsersContaining(user);
+    }
+
     public Optional<Set<User>> getMembers(Group group) {
         Set<User> users = group.getUsers();
-        if (users.isEmpty()) { return Optional.empty(); }
+        if (users.isEmpty()) { 
+            return Optional.empty(); 
+        }
         return Optional.of(users);
     }
 
     public Optional<User> addUser(Group group, User user) {
-        Optional<Group> existingGroup = this.groupRepository.findByName(group.getName());
+        Optional<Group> groupOpt = this.groupRepository.findByName(group.getName());
+        if (groupOpt.isEmpty()) {
+            System.out.println("Group not found: " + group.getName());
+            return Optional.empty();
+        }
+        Group storedGroup = groupOpt.get();
+        if (!storedGroup.equals(group)) {
+            System.out.println("Group mismatch for: " + group.getName());
+            return Optional.empty();
+        }
 
-        if (existingGroup.isEmpty()) {
-            System.out.println("FUCK 1");
+        Optional<User> existingUser = storedGroup.getUserByID(user.getID());
+        if (existingUser.isPresent()) {
+            System.out.println("User already exists in group: " + user.getID());
             return Optional.empty();
         }
-        if (!existingGroup.get().equals(group)) {
-            System.out.println("FUCK 2");
+
+        storedGroup.addUser(user);
+        groupRepository.save(storedGroup);
+        return Optional.of(user);
+    }
+
+    public Optional<User> removeUser(Group group, User user) {
+        Optional<Group> groupOpt = this.groupRepository.findByName(group.getName());
+        if (groupOpt.isEmpty()) {
+            System.out.println("Group not found: " + group.getName());
             return Optional.empty();
         }
-        Group g = existingGroup.get();
-        Optional<User> existingUser = g.getUserByID(user.getID());
-        System.out.println("existingUser=" + existingUser.toString());
-        if (existingUser.isPresent() && existingUser.get().equals(user)) {
-            System.out.println("FUCK 3");
+        Group storedGroup = groupOpt.get();
+        if (!storedGroup.getUsers().removeIf(u -> u.getID().equals(user.getID()))) {
+            System.out.println("User not found in group: " + user.getID());
             return Optional.empty();
         }
-        existingGroup.get().addUser(user);
+        groupRepository.save(storedGroup);
         return Optional.of(user);
     }
 
@@ -70,7 +95,7 @@ public class GroupService {
             Group updatedGroup = this.groupRepository.save(group);
             return Optional.of(updatedGroup);
         } catch (DataIntegrityViolationException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error updating group: " + e.getMessage());
             return Optional.empty();
         }
     }

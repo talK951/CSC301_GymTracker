@@ -1,6 +1,5 @@
 package com.utm.gym_tracker.group;
 
-import ch.qos.logback.core.joran.spi.DefaultClass;
 import com.utm.gym_tracker.user.User;
 import jakarta.persistence.*;
 
@@ -44,16 +43,30 @@ public class Group {
         return name;
     }
 
-    public Set<User> getUsers() {
-        return users;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
 
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
+    }
+
     public void addUser(User user) {
-        this.users.add(user);
+        if (user != null) {
+            this.users.add(user);
+            user.getGroups().add(this);
+        }
+    }
+
+    public void removeUser(User user) {
+        if (user != null) {
+            this.users.remove(user);
+            user.getGroups().remove(this);
+        }
     }
 
     public Optional<User> getUserByID(Long id) {

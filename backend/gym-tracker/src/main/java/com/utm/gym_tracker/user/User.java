@@ -131,4 +131,26 @@ public class User {
     public void setWorkouts(List<Workout> workouts) {
         this.workouts = workouts;
     }
+
+    public Set<Group> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(Set<Group> groups) {
+        this.groups = groups;
+    }
+
+    public void addGroup(Group group) {
+        if (group != null) {
+            this.groups.add(group);
+            group.getUsers().add(this);
+        }
+    }
+
+    public void removeGroup(Group group) {
+        if (group != null) {
+            this.groups.remove(group);
+            group.getUsers().remove(this);
+        }
+    }
 }

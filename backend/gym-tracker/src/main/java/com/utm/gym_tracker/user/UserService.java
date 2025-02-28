@@ -1,6 +1,5 @@
 package com.utm.gym_tracker.user;
 
-import com.utm.gym_tracker.group.Group;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
@@ -9,7 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Component
 public class UserService {
