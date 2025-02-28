@@ -3,26 +3,34 @@ import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Activity
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from 'expo-router';
+import { getCurrentUserId } from '@/utils/authHelpers';
+import { getToken } from '@/utils/authStorage';
+import Constants from 'expo-constants';
 
 interface Group {
   id: string;
   name: string;
 }
 
-const mockFetchGroups = (page: number): Promise<Group[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newGroups: Group[] = Array.from({ length: 8 }, (_, index) => {
-        const id = (page - 1) * 8 + index + 1;
-        return {
-          id: id.toString(),
-          name: `Group Chat ${id}`,
-        };
-      });
-      resolve(newGroups);
-    }, 1000);
-  });
+const fetchGroups = async (page: number): Promise<Group[]> => {
+  try {
+    const userId = await getCurrentUserId();
+    if (userId === null) {
+      throw new Error('no userId found');
+    }
+
+    const response = await fetch(`/group/`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data: Group[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch groups:', error);
+    return [];
+  }
 };
+
 
 const GroupsPage: React.FC = () => {
   const navigation = useNavigation();
@@ -34,10 +42,15 @@ const GroupsPage: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    mockFetchGroups(page).then((newGroups: Group[]) => {
-      setGroups((prevGroups) => [...prevGroups, ...newGroups]);
-      setLoading(false);
-    });
+    fetchGroups(page)
+      .then((newGroups: Group[]) => {
+        setGroups((prevGroups) => [...prevGroups, ...newGroups]);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
   }, [page]);
 
   const loadMoreGroups = () => {

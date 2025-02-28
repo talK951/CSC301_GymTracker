@@ -20,7 +20,7 @@ export default function HomeScreen() {
 
         <CustomButton
           label="Login"
-          onPress={() => router.push("/(auth)/nav_bar")}
+          onPress={() => router.push("/(auth)/sign-in")}
           color="#FFA500"
         />
         <CustomButton
