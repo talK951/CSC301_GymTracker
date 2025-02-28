@@ -64,4 +64,14 @@ public class GroupService {
         existingGroup.get().addUser(user);
         return Optional.of(user);
     }
+
+    public Optional<Group> updateGroup(Group group) {
+        try {
+            Group updatedGroup = this.groupRepository.save(group);
+            return Optional.of(updatedGroup);
+        } catch (DataIntegrityViolationException e) {
+            System.out.println(e.getMessage());
+            return Optional.empty();
+        }
+    }
 }

@@ -4,10 +4,7 @@ import ch.qos.logback.core.joran.spi.DefaultClass;
 import com.utm.gym_tracker.user.User;
 import jakarta.persistence.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "groups")
@@ -28,11 +25,15 @@ public class Group {
     )
     private Set<User> users = new HashSet<>();
 
+    @ElementCollection
+    @OrderColumn(name = "post_order")
+    @Column(name = "post", nullable = false)
+    private List<String> posts = new ArrayList<>();
+
     public Group() {}
 
     public Group(String name) {
         this.name = name;
-//        this.users = new HashMap<>();
     }
 
     public Long getId() {
@@ -65,5 +66,14 @@ public class Group {
         }
         if (user == null) { return Optional.empty(); }
         return Optional.of(user);
+    }
+
+    public List<String> getPosts() {
+        return posts;
+    }
+
+    // Helper method to add a post in order
+    public void addPost(String post) {
+        this.posts.add(post);
     }
 }

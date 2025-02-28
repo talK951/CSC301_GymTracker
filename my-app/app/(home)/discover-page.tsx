@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
+import axios from "axios";
 
 interface User {
   id: string;
@@ -10,6 +11,10 @@ interface User {
   workout: string;
   avatar: string;
   location: string;
+  utorId: string;
+  email: string;
+  username: string
+  password: string;
 }
 
 const mockFetchUsers = (page: number): Promise<User[]> => {
@@ -19,11 +24,15 @@ const mockFetchUsers = (page: number): Promise<User[]> => {
         const id = (page - 1) * 8 + index + 1;
         return {
           id: id.toString(),
-          name: `User ${id}`,
+          name: `User${id}`,
           experience: ['Beginner', 'Intermediate', 'Advanced'][id % 3],
           workout: ['Cardio', 'Weightlifting', 'Yoga', 'CrossFit'][id % 4],
           avatar: `https://i.pravatar.cc/150?img=${(id % 70) + 1}`,
-          location: ['Mississauga', 'Toronto'][id % 2]
+          location: ['Mississauga', 'Toronto'][id % 2],
+          utorId: `User${id}-UtorId`,
+          email: `User${id}@mail.utoronto.ca`,
+          username: `User${id}`,
+          password: "123",
         };
       });
       resolve(newUsers);
@@ -57,6 +66,52 @@ const DiscoverPage: React.FC = () => {
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const onClickCreateGroup = async (user: User) => {
+    try {
+      const groupPayload = {
+        name: user.username,
+        users: [
+          {
+            username: user.username,
+            name: user.name,
+            utorID: user.utorId,
+            email: user.email,
+            password: user.password
+          },
+        ]
+      };
+      console.log(groupPayload);
+      // Replace with your actual endpoint
+      const response = await axios.post(
+        'http://localhost:8080/api/group',
+        groupPayload,
+        {
+          headers: {
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWwiLCJ1c2VySWQiOjEsImlhdCI6MTc0MDcwODEzNywiZXhwIjoxNzQwNzk0NTM3fQ.RLiDlUiWdxLV2XgvuQhf-p50dUDyLbDreaxpHjmfaN0"
+          }
+        });
+      console.log('POST request successful:', response.data);
+    } catch (error) {
+      console.error('Error posting group:', error);
+    }
+  };
+  
+
+  const renderUserItem = ({ item }: { item: User }) => (
+    <View style={styles.userCard}>
+      <Image source={{ uri: item.avatar }} style={styles.avatar} />
+      <View style={styles.userInfo}>
+        <Text style={styles.userName}>{item.name}</Text>
+        <Text style={styles.userDetail}>Experience: {item.experience}</Text>
+        <Text style={styles.userDetail}>Workout Type: {item.workout}</Text>
+        <Text style={styles.userDetail}>Location: {item.location}</Text>
+      </View>
+      <TouchableOpacity style={styles.plusButton} onPress={() => onClickCreateGroup(item)}>
+        <Text style={styles.plusText}>+</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
       <View style={styles.container}>
@@ -70,17 +125,7 @@ const DiscoverPage: React.FC = () => {
         <FlatList
           data={filteredUsers}
           keyExtractor={(item: User) => item.id}
-          renderItem={({ item }: { item: User }) => (
-            <TouchableOpacity style={styles.userCard}>
-              <Image source={{ uri: item.avatar }} style={styles.avatar} />
-              <View style={styles.userInfo}>
-                <Text style={styles.userName}>{item.name}</Text>
-                <Text style={styles.userDetail}>Experience: {item.experience}</Text>
-                <Text style={styles.userDetail}>Workout Type: {item.workout}</Text>
-                <Text style={styles.userDetail}>Location: {item.location}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
+          renderItem={renderUserItem}
           onEndReached={loadMoreUsers}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
@@ -135,6 +180,19 @@ const styles = StyleSheet.create({
   userDetail: {
     fontSize: 14,
     color: '#555',
+  },
+  plusButton: {
+    backgroundColor: '#333333', // Darker color for the button
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  plusText: {
+    color: '#FFFFFF', // Bright white for the plus
+    fontSize: 20,
+    lineHeight: 20,
   },
   background: {
     flex: 1,

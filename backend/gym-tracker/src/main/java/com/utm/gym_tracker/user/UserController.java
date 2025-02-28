@@ -1,5 +1,6 @@
 package com.utm.gym_tracker.user;
 
+import com.utm.gym_tracker.group.Group;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +15,10 @@ import com.utm.gym_tracker.user.dto.UserResponse;
 import com.utm.gym_tracker.workout.Workout;
 import com.utm.gym_tracker.workout.dto.WorkoutResponse;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController

@@ -1,25 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { getCurrentUserId } from '@/utils/authHelpers';
 import { getToken } from '@/utils/authStorage';
 import Constants from 'expo-constants';
+import { Float } from 'react-native/Libraries/Types/CodegenTypes';
+
 
 interface Group {
   id: string;
   name: string;
+  users: User[];
 }
 
-const fetchGroups = async (page: number): Promise<Group[]> => {
-  try {
-    const userId = await getCurrentUserId();
-    if (userId === null) {
-      throw new Error('no userId found');
-    }
+interface User {
+  username: string,
+  name: string,
+  utorID: string,
+  email: string,
+}
 
-    const response = await fetch(`/group/`);
+const fetchGroups = async (): Promise<Group[]> => {
+  try {
+    const response = await fetch(`http://192.168.87.48:8080/api/group`, {
+      method: 'GET',
+      headers: {
+        Authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWwiLCJ1c2VySWQiOjEsImlhdCI6MTc0MDcwODEzNywiZXhwIjoxNzQwNzk0NTM3fQ.RLiDlUiWdxLV2XgvuQhf-p50dUDyLbDreaxpHjmfaN0"
+      }
+    });
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
@@ -40,18 +50,24 @@ const GroupsPage: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    setLoading(true);
-    fetchGroups(page)
-      .then((newGroups: Group[]) => {
-        setGroups((prevGroups) => [...prevGroups, ...newGroups]);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, [page]);
+  const lastFetchedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetchGroups()
+        .then((newGroups: Group[]) => {
+          // Optionally, you could replace existing groups or append.
+          // Here, we replace the groups on each focus.
+          setGroups(newGroups);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error(err);
+          setLoading(false);
+        });
+    }, [])
+  );
 
   const loadMoreGroups = () => {
     if (!loading) {
@@ -63,8 +79,8 @@ const GroupsPage: React.FC = () => {
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const onClickGroup = () => {
-    router.push("/(auth)/group_chat");
+  const onClickGroup = (chatName: string) => {
+    router.push(`/(home)/group_chat?chatName=${encodeURIComponent(chatName)}`);
   };
 
   return (
@@ -81,7 +97,7 @@ const GroupsPage: React.FC = () => {
           data={filteredGroups}
           keyExtractor={(item: Group) => item.id}
           renderItem={({ item }: { item: Group }) => (
-            <TouchableOpacity style={styles.groupCard} onPress={onClickGroup}>
+            <TouchableOpacity style={styles.groupCard} onPress={() => onClickGroup(item.name)}>
               <Text style={styles.groupName}>{item.name}</Text>
             </TouchableOpacity>
           )}

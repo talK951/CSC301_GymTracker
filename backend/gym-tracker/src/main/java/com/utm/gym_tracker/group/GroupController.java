@@ -1,5 +1,6 @@
 package com.utm.gym_tracker.group;
 
+
 import com.utm.gym_tracker.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.EvaluationException;
@@ -10,8 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping(path = "/api/group") // TODO
 public class GroupController {
@@ -73,4 +75,44 @@ public class GroupController {
                         -> new ResponseEntity<>(HttpStatus.CONFLICT)
                 );
     }
+
+    @PostMapping("/{groupName}/post")
+    public ResponseEntity<Group> addPostToGroup(@PathVariable String groupName,
+                                                @RequestBody String post) {
+        Optional<Group> groupOptional = this.groupService.getGroupByName(groupName);
+        if (groupOptional.isEmpty()) {
+            System.out.println("Dolphin 1");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Group group = groupOptional.get();
+        group.addPost(extractPostsValue(post));  // This method was added to the Group entity.
+
+        // Save the updated group. This assumes that groupService has a method to update an existing group.
+        Optional<Group> updatedGroup = this.groupService.updateGroup(group);
+        return updatedGroup.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.CONFLICT));
+    }
+
+    @GetMapping("/{groupName}/posts")
+    public ResponseEntity<List<String>> getPostsForGroup(@PathVariable String groupName) {
+        Optional<Group> groupOptional = this.groupService.getGroupByName(groupName);
+        if (groupOptional.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        List<String> posts = groupOptional.get().getPosts();
+        return new ResponseEntity<>(posts, HttpStatus.OK);
+    }
+
+    private static String extractPostsValue(String input) {
+        if (input == null) return null;
+        // This regex looks for "posts": "<value>" and captures the value inside the quotes.
+        Pattern pattern = Pattern.compile("\"posts\"\\s*:\\s*\"([^\"]*)\"");
+        Matcher matcher = pattern.matcher(input);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
+
 }
