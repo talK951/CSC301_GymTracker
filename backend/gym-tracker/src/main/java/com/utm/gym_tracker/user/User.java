@@ -1,12 +1,14 @@
 package com.utm.gym_tracker.user;
 
-import com.utm.gym_tracker.groups.Group;
+import com.utm.gym_tracker.group.Group;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 import com.utm.gym_tracker.workout.Workout;
@@ -43,8 +45,8 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Workout> workouts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Group> groups = new ArrayList<>();
+    @ManyToMany(mappedBy = "users")
+    private Set<Group> groups = new HashSet<>();;
 
     public User(String username, String name, String utorID, String email, String password) {
         this.username = username;
@@ -129,13 +131,4 @@ public class User {
     public void setWorkouts(List<Workout> workouts) {
         this.workouts = workouts;
     }
-
-    public List<Group> getGroups() {
-        return groups;
-    }
-
-    public void addGroup(Group newGroup) {
-        groups.add(newGroup);
-    }
-
 }
