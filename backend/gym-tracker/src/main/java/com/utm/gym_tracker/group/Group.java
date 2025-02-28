@@ -5,7 +5,9 @@ import com.utm.gym_tracker.user.User;
 import jakarta.persistence.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Entity
 @Table(name = "groups")
@@ -18,8 +20,13 @@ public class Group {
     @Column(name = "name", nullable = false, unique = true, length = 20) // Placeholder
     private String name;
 
-    @ManyToMany
-    private HashMap<Long, User> users;
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "group_users",
+            joinColumns = @JoinColumn(name = "group_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> users = new HashSet<>();
 
     public Group() {}
 
@@ -36,7 +43,7 @@ public class Group {
         return name;
     }
 
-    public HashMap<Long, User> getUsers() {
+    public Set<User> getUsers() {
         return users;
     }
 
@@ -45,11 +52,17 @@ public class Group {
     }
 
     public void addUser(User user) {
-        this.users.put(user.getID(), user);
+        this.users.add(user);
     }
 
     public Optional<User> getUserByID(Long id) {
-        User user = this.users.get(id);
+        User user = null;
+        for (User curr: users) {
+            if (curr.getID() == id) {
+                user = curr;
+                break;
+            }
+        }
         if (user == null) { return Optional.empty(); }
         return Optional.of(user);
     }

@@ -61,8 +61,9 @@ public class GroupController {
     }
 
     @PostMapping("/{groupName}/members")
-    public ResponseEntity<User> addUser(@RequestParam String groupName,
+    public ResponseEntity<User> addUser(@PathVariable String groupName,
                                         @RequestBody User user) {
+        System.out.println("===============groupName:"+groupName+"=================");
         Optional<Group> group = this.groupService.getGroupByName(groupName);
         if (group.isEmpty()) { return new ResponseEntity<>(HttpStatus.NOT_FOUND); }
         Optional<User> createdUser = this.groupService.addUser(group.get(), user);

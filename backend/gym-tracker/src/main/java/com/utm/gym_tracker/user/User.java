@@ -4,6 +4,7 @@ import com.utm.gym_tracker.group.Group;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -36,8 +37,8 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @ManyToMany
-    private Set<Group> groups;
+    @ManyToMany(mappedBy = "users")
+    private Set<Group> groups = new HashSet<>();;
 
     public User(String username, String name, String utorID, String email, String password) {
         this.username = username;
@@ -99,10 +100,6 @@ public class User {
         return utorID;
     }
 
-    public Set<Group> getGroups() {
-        return groups;
-    }
-
     public void setUtorID(String utorID) {
         this.utorID = utorID;
     }
@@ -129,9 +126,5 @@ public class User {
 
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
-    }
-
-    public void addGroup(Group group) {
-        this.groups.add(group);
     }
 }

@@ -38,21 +38,27 @@ public class GroupService {
     }
 
     public Optional<Set<User>> getMembers(Group group) {
-        Set<User> users = (Set<User>) group.getUsers().values();
+        Set<User> users = group.getUsers();
         if (users.isEmpty()) { return Optional.empty(); }
         return Optional.of(users);
     }
 
     public Optional<User> addUser(Group group, User user) {
         Optional<Group> existingGroup = this.groupRepository.findByName(group.getName());
+
         if (existingGroup.isEmpty()) {
+            System.out.println("FUCK 1");
             return Optional.empty();
         }
         if (!existingGroup.get().equals(group)) {
+            System.out.println("FUCK 2");
             return Optional.empty();
         }
-        Optional<User> existingUser = existingGroup.get().getUserByID(user.getID());
-        if (existingUser.isEmpty() || existingUser.get().equals(user)) {
+        Group g = existingGroup.get();
+        Optional<User> existingUser = g.getUserByID(user.getID());
+        System.out.println("existingUser=" + existingUser.toString());
+        if (existingUser.isPresent() && existingUser.get().equals(user)) {
+            System.out.println("FUCK 3");
             return Optional.empty();
         }
         existingGroup.get().addUser(user);
