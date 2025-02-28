@@ -3,6 +3,13 @@ export interface ApiResponse<T> {
     data: T;
 }
 
+export interface User {
+    id: number;
+    name: string;
+    email: string;
+    profile_pic: string;
+}
+
 export interface JwtResponseType {
     token: string;
     tokenType: string;
