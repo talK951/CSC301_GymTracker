@@ -1,9 +1,11 @@
 package com.utm.gym_tracker.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.utm.gym_tracker.group.Group;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -37,6 +39,7 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "users")
     private Set<Group> groups = new HashSet<>();;
 
@@ -126,5 +129,13 @@ public class User {
 
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
+    }
+
+    public Set<Group> getGroups() {
+        return this.groups;
+    }
+
+    public void removeGroup(Group group) {
+        this.groups.remove(group);
     }
 }

@@ -1,9 +1,11 @@
 package com.utm.gym_tracker.group;
 
-import ch.qos.logback.core.joran.spi.DefaultClass;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.utm.gym_tracker.user.User;
 import jakarta.persistence.*;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
@@ -20,6 +22,7 @@ public class Group {
     @Column(name = "name", nullable = false, unique = true, length = 20) // Placeholder
     private String name;
 
+    @JsonIgnore
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "group_users",
@@ -35,7 +38,7 @@ public class Group {
 //        this.users = new HashMap<>();
     }
 
-    public Long getId() {
+    public Long getID() {
         return id;
     }
 
@@ -53,6 +56,12 @@ public class Group {
 
     public void addUser(User user) {
         this.users.add(user);
+        user.getGroups().add(this); // Update the other side of the relationship
+    }
+
+    public void removeUser(User user) {
+        this.users.remove(user);
+        user.getGroups().remove(this);
     }
 
     public Optional<User> getUserByID(Long id) {

@@ -1,21 +1,26 @@
 package com.utm.gym_tracker.group;
 
+import com.utm.gym_tracker.RequestDistributer;
 import com.utm.gym_tracker.user.User;
+import com.utm.gym_tracker.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.EvaluationException;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@CrossOrigin(origins = "http://localhost:8081")
+@CrossOrigin(origins = "${GROUP_SERVICE_ADDR}")
 @RestController
 @RequestMapping(path = "/api/group") // TODO
 public class GroupController {
     private final GroupService groupService;
+    private final RequestDistributer requestDistributer = new RequestDistributer();
 
     @Autowired
     public GroupController(GroupService groupService) {
@@ -43,6 +48,7 @@ public class GroupController {
         Optional<Group> group = this.groupService.getGroupByName(groupName);
         if (group.isEmpty()) { return new ResponseEntity<>(HttpStatus.NOT_FOUND); }
         Optional<Set<User>> users = this.groupService.getMembers(group.get());
+        System.out.println(users);
         return users.map(value
                         -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(()
@@ -67,6 +73,8 @@ public class GroupController {
         Optional<Group> group = this.groupService.getGroupByName(groupName);
         if (group.isEmpty()) { return new ResponseEntity<>(HttpStatus.NOT_FOUND); }
         Optional<User> createdUser = this.groupService.addUser(group.get(), user);
+        System.out.println(createdUser);
+        System.out.println(group.get().getUsers());
         return createdUser.map(value
                         -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(()
