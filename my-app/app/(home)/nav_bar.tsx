@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons'; // import an icon set
 import PersonalPage from "./personal_page";
 import SettingsPage from "./settings_page";
 import DiscoverPage from "./discover-page";
-import GroupsPage from "./groups_page"
 import WorkoutsPage from "./workouts-page";
+import GroupsPage from "./groups_page";
 
 const page = createBottomTabNavigator();
 

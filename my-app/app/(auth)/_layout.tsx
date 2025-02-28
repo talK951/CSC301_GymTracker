@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import React from "react";
-import ChatScreen from "./group_chat";
+import ChatScreen from "../(home)/group_chat";
 
 const AuthLayout = () => {
   return (
