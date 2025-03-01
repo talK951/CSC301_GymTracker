@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.utm.gym_tracker.dto.ApiResponse;
 import com.utm.gym_tracker.exercise.dto.ExerciseResponse;
+import com.utm.gym_tracker.group.dto.UserSummary;
 import com.utm.gym_tracker.security.JwtResponse;
 import com.utm.gym_tracker.security.JwtService;
 import com.utm.gym_tracker.user.dto.LoginRequest;
@@ -50,7 +51,7 @@ public class UserController {
         }
     }
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(
             @RequestParam("email") String email) {
         Optional<User> userOpt = this.userService.getUserByEmail(email);
@@ -75,6 +76,52 @@ public class UserController {
         );
 
         ApiResponse<UserResponse> response = new ApiResponse<>("Success", userResponse);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id){
+        Optional<User> userOpt = this.userService.getUserByID(id);
+
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        User user = userOpt.get();
+        List<WorkoutResponse> workoutDTOs = user.getWorkouts().stream()
+        .map(this::mapWorkoutToDto)
+        .collect(Collectors.toList());
+
+        UserResponse userResponse = new UserResponse(
+            user.getID(),
+            user.getUsername(),
+            user.getName(),
+            user.getUtorID(),
+            user.getEmail(),
+            user.getProfilePicture(),
+            workoutDTOs
+        );
+        ApiResponse<UserResponse> response = new ApiResponse<>("Success", userResponse);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<UserSummary>>> getUsers() {
+        List<User> users = this.userService.getUsers();
+        if (users.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        List<UserSummary> userSummaries = users.stream()
+        .map(user -> new UserSummary(
+                user.getID(),
+                user.getUsername(),
+                user.getName(),
+                user.getEmail()
+        ))
+        .collect(Collectors.toList());
+
+        ApiResponse<List<UserSummary>> response = new ApiResponse<>("Success", userSummaries);
         return ResponseEntity.ok(response);
     }
 

@@ -1,18 +1,42 @@
-import React from "react";
-import { View, FlatList, StyleSheet, Text, StatusBar, SafeAreaView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, FlatList, StyleSheet, Text, StatusBar, SafeAreaView, Alert } from "react-native";
 import { Title, Card, Button } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { deleteToken } from "@/utils/authStorage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { getCurrentUserId } from "@/utils/authHelpers";
+import apiClient from "../../utils/apiClient";
 
-const settingsOptions = [
-  { label: "Account Name", value: "Tal Kleiman" },
-  { label: "UtorID", value: "kleima12" },
-  { label: "Email", value: "tal.kleiman@mail.utoronto.ca" },
-];
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  username: string;
+  utorID: string;
+}
 
 const SettingsPage = () => {
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const userId = await getCurrentUserId();
+      if (userId === null) {
+        showAlert("Error", "User not authenticated");
+        return;
+      }
+      const response = await apiClient.get(`/user/${userId}`);
+      setUser(response.data.data);
+    } catch (error) {
+      console.error(error);
+      showAlert("Error", "Failed to fetch user.");
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -23,6 +47,12 @@ const SettingsPage = () => {
       alert("Logout failed, Please try again.");
     }
   };
+
+  const settingsOptions = [
+    { label: "Account Name", value: user?.name || "" },
+    { label: "UtorID", value: user?.utorID || "" },
+    { label: "Email", value: user?.email || "" },
+  ];
 
   return (
     <SafeAreaProvider>
@@ -107,5 +137,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
+function showAlert(title: string, message: string) {
+  if (typeof window !== "undefined" && window.alert) {
+    window.alert(`${title}: ${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+}
 
 export default SettingsPage;
