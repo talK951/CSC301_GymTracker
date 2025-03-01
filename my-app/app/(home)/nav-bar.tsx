@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, View, Alert, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons'; // import an icon set
-import PersonalPage from "./personal_page";
-import SettingsPage from "./settings_page";
+import PersonalPage from "./personal-page";
+import SettingsPage from "./settings-page";
 import DiscoverPage from "./discover-page";
 import WorkoutsPage from "./workouts-page";
-import GroupsPage from "./groups_page";
+import GroupsPage from "./groups-page";
 
 const page = createBottomTabNavigator();
 

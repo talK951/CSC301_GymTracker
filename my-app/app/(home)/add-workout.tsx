@@ -90,7 +90,7 @@ export default function AddWorkout() {
       try {
         const response = await apiClient.post<ApiResponse<WorkoutResponseData>>("/workout", workout);
         showAlert("Success", "Workout created successfully.");
-        router.push("/(home)/nav_bar");
+        router.push("/(home)/nav-bar");
       } catch (error) {
         console.error("Creation failed:", error);
         showAlert("Error", "Failed to create workout.");
