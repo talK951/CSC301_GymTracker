@@ -11,7 +11,7 @@ interface UserInfoCardProps {
 
 const UserInfoCard: React.FC<UserInfoCardProps> = ({ user, onPlusPress }) => {
   // Hard-coded profile pictire for now
-  const profilePic = user.profile_pic || 'https://i.pravatar.cc/150?img=${70}';
+  const profilePic = user.profilePicture || 'https://i.pravatar.cc/150?img=${70}';
 
   return (
     <Card style={styles.card}>

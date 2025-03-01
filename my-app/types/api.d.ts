@@ -3,13 +3,6 @@ export interface ApiResponse<T> {
     data: T;
 }
 
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    profile_pic: string;
-}
-
 export interface JwtResponseType {
     token: string;
     tokenType: string;
@@ -41,6 +34,16 @@ export interface Exercise {
     createdAt: string;
 }
 
+export interface User {
+    id: number;
+    username: string;
+    name: string;
+    email: string;
+    profilePicture?: string;
+    utorID: string;
+    workouts?: Workout[];
+}
+
 export type CreateExerciseDTO = Omit<Exercise, "id" | "createdAt">;
 
 export type WorkoutDTO = {
@@ -48,3 +51,15 @@ export type WorkoutDTO = {
     endTime: string;
     exercises: CreateExerciseDTO[];
 };
+
+export interface Group {
+    id: number;
+    name: string;
+    users: UserSummary[];
+    posts?: string[];
+}
+  
+export interface GroupSummary {
+    id: number;
+    name: string;
+}

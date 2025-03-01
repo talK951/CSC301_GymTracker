@@ -1,9 +1,11 @@
 package com.utm.gym_tracker.group;
 
 import com.utm.gym_tracker.dto.ApiResponse;
+import com.utm.gym_tracker.group.dto.CreateGroup;
 import com.utm.gym_tracker.group.dto.GroupPostResponse;
 import com.utm.gym_tracker.group.dto.GroupResponse;
 import com.utm.gym_tracker.group.dto.GroupSummary;
+import com.utm.gym_tracker.group.dto.UserGroupRequest;
 import com.utm.gym_tracker.group.dto.UserSummary;
 import com.utm.gym_tracker.user.User;
 import com.utm.gym_tracker.user.UserService;
@@ -78,10 +80,23 @@ public class GroupController {
         return ResponseEntity.ok(response);
     }
 
-    // Creates a new group.
+    // Creates a new group with respective users
     @PostMapping()
-    public ResponseEntity<ApiResponse<GroupSummary>> createGroup(@RequestBody Group group) {
-        Optional<Group> createdGroup = this.groupService.createGroup(group);
+    public ResponseEntity<ApiResponse<GroupSummary>> createGroup(@RequestBody CreateGroup groupDTO) {
+        Group group = new Group(groupDTO.getName());
+
+        if (groupDTO.getUserIds() != null) {
+            for (Long id : groupDTO.getUserIds()) {
+                Optional<User> userOpt = userService.getUserByID(id);
+                if (userOpt.isPresent()) {
+                    group.addUser(userOpt.get());
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                }
+            }
+        }
+
+        Optional<Group> createdGroup = groupService.createGroup(group);
         if (createdGroup.isPresent()) {
             Group g = createdGroup.get();
             GroupSummary summary = new GroupSummary(g.getId(), g.getName());
@@ -92,34 +107,38 @@ public class GroupController {
         }
     }
 
-    // Adds a user to a group.
+    // Adds user(s) to a group.
     @PostMapping("/{groupName}/users")
-    public ResponseEntity<ApiResponse<GroupResponse>> addUserToGroup(@PathVariable String groupName,
-                                               @RequestBody UserSummary userSummary) {
-        Optional<Group> group = groupService.getGroupByName(groupName);
-        if (group.isEmpty()) {
+    public ResponseEntity<ApiResponse<GroupResponse>> addUsersToGroup(
+            @PathVariable String groupName,
+            @RequestBody UserGroupRequest userGroupRequest) {
+            
+        Optional<Group> groupOpt = groupService.getGroupByName(groupName);
+        if (groupOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        Group group = groupOpt.get();
 
-        Optional<User> userOpt = userService.getUserByID(userSummary.getId());
-        if (!userOpt.isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        List<Long> userIds = userGroupRequest.getUserIds();
+        for (Long id : userIds) {
+            Optional<User> userOpt = userService.getUserByID(id);
+            if (userOpt.isPresent()) {
+                Optional<User> addedUser = groupService.addUser(group, userOpt.get());
+                if (!addedUser.isPresent()) {
+                    return ResponseEntity.status(HttpStatus.CONFLICT).build();
+                }
+            } else{
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
         }
 
-        Optional<User> addedUser = groupService.addUser(group.get(), userOpt.get());
-        if (addedUser.isPresent()) {
-            Group updatedGroup = groupService.getGroupByName(groupName).get();
-            
-            List<UserSummary> userSummaries = updatedGroup.getUsers().stream()
+        List<UserSummary> userSummaries = group.getUsers().stream()
                 .map(user -> new UserSummary(user.getID(), user.getUsername(), user.getName(), user.getEmail()))
-                .toList();
-    
-            GroupResponse groupResponse = new GroupResponse(updatedGroup.getId(), updatedGroup.getName(), userSummaries);
-            ApiResponse<GroupResponse> response = new ApiResponse<>("Success", groupResponse);
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+                .collect(Collectors.toList());
+
+        GroupResponse groupResponse = new GroupResponse(group.getId(), group.getName(), userSummaries);
+        ApiResponse<GroupResponse> response = new ApiResponse<>("Success", groupResponse);
+        return ResponseEntity.ok(response);
     }
 
     // Removes the user from the group.
