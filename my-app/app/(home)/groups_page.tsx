@@ -1,87 +1,71 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useFocusEffect } from 'expo-router';
+import { useFocusEffect, router } from 'expo-router';
+import apiClient from "../../utils/apiClient";
 import { getCurrentUserId } from '@/utils/authHelpers';
-import { getToken } from '@/utils/authStorage';
-import Constants from 'expo-constants';
-import { Float } from 'react-native/Libraries/Types/CodegenTypes';
-
+import type { ApiResponse } from "@/types/api";
 
 interface Group {
   id: string;
   name: string;
-  users: User[];
 }
 
-interface User {
-  username: string,
-  name: string,
-  utorID: string,
-  email: string,
-}
-
-const fetchGroups = async (): Promise<Group[]> => {
-  try {
-    const response = await fetch(`http://192.168.87.48:8080/api/group`, {
-      method: 'GET',
-      headers: {
-        Authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWwiLCJ1c2VySWQiOjEsImlhdCI6MTc0MDcwODEzNywiZXhwIjoxNzQwNzk0NTM3fQ.RLiDlUiWdxLV2XgvuQhf-p50dUDyLbDreaxpHjmfaN0"
-      }
-    });
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    const data: Group[] = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Failed to fetch groups:', error);
-    return [];
+function showAlert(title: string, message: string) {
+  if (typeof window !== "undefined" && window.alert) {
+    window.alert(`${title}: ${message}`);
+  } else {
+    Alert.alert(title, message);
   }
-};
-
+}
 
 const GroupsPage: React.FC = () => {
   const navigation = useNavigation();
-  
   const [groups, setGroups] = useState<Group[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const lastFetchedRef = useRef<number>(0);
+  // Fetch groups for the current user
+  const fetchGroups = async () => {
+    setLoading(true);
+    try {
+      const userId = await getCurrentUserId();
+      if (userId === null) {
+        showAlert("Error", "User not authenticated");
+        return;
+      }
+
+      const response = await apiClient.get<ApiResponse<Group[]>>(`/group/user/${userId}`);
+      setGroups(response.data.data);
+    } catch (error) {
+      console.error('Failed to fetch groups:', error);
+      showAlert("Error", "Failed to fetch groups.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      fetchGroups()
-        .then((newGroups: Group[]) => {
-          // Optionally, you could replace existing groups or append.
-          // Here, we replace the groups on each focus.
-          setGroups(newGroups);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error(err);
-          setLoading(false);
-        });
+      fetchGroups();
     }, [])
   );
-
-  const loadMoreGroups = () => {
-    if (!loading) {
-      setPage((prevPage) => prevPage + 1);
-    }
-  };
 
   const filteredGroups = groups.filter(group =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const onClickGroup = (chatName: string) => {
-    router.push(`/(home)/group_chat?chatName=${encodeURIComponent(chatName)}`);
-  };
+  const renderGroupItem = ({ item }: { item: Group }) => (
+    <TouchableOpacity
+      style={styles.groupCard}
+      onPress={() =>
+        router.push(`/(home)/group_chat?groupName=${encodeURIComponent(item.name)}`)
+      }
+    >
+      <Text style={styles.groupName}>{item.name}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
@@ -93,20 +77,15 @@ const GroupsPage: React.FC = () => {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <FlatList
-          data={filteredGroups}
-          keyExtractor={(item: Group) => item.id}
-          renderItem={({ item }: { item: Group }) => (
-            <TouchableOpacity style={styles.groupCard} onPress={() => onClickGroup(item.name)}>
-              <Text style={styles.groupName}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-          onEndReached={loadMoreGroups}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
-          }
-        />
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <FlatList
+            data={filteredGroups}
+            keyExtractor={(item: Group) => item.id}
+            renderItem={renderGroupItem}
+          />
+        )}
       </View>
     </LinearGradient>
   );

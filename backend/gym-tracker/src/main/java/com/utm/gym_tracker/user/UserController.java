@@ -51,7 +51,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/email")
+    @GetMapping
     public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(
             @RequestParam("email") String email) {
         Optional<User> userOpt = this.userService.getUserByEmail(email);
@@ -79,7 +79,33 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping()
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id){
+        Optional<User> userOpt = this.userService.getUserByID(id);
+
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        User user = userOpt.get();
+        List<WorkoutResponse> workoutDTOs = user.getWorkouts().stream()
+        .map(this::mapWorkoutToDto)
+        .collect(Collectors.toList());
+
+        UserResponse userResponse = new UserResponse(
+            user.getID(),
+            user.getUsername(),
+            user.getName(),
+            user.getUtorID(),
+            user.getEmail(),
+            user.getProfilePicture(),
+            workoutDTOs
+        );
+        ApiResponse<UserResponse> response = new ApiResponse<>("Success", userResponse);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<UserSummary>>> getUsers() {
         List<User> users = this.userService.getUsers();
         if (users.isEmpty()){
