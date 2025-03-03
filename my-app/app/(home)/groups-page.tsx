@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, router } from 'expo-router';
 import apiClient from "../../utils/apiClient";
 import { getCurrentUserId } from '@/utils/authHelpers';
 import type { ApiResponse } from "@/types/api";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Group {
   id: string;
@@ -20,10 +20,23 @@ function showAlert(title: string, message: string) {
   }
 }
 
+function showConfirm(title: string, message: string): Promise<boolean> {
+  if (Platform.OS === "web") {
+    return Promise.resolve(window.confirm(`${title}\n\n${message}`));
+  } else {
+    return new Promise((resolve) => {
+      Alert.alert(title, message, [
+        { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+        { text: "Delete", onPress: () => resolve(true), style: "destructive" },
+      ]);
+    });
+  }
+}
+
 const GroupsPage: React.FC = () => {
-  const navigation = useNavigation();
   const [groups, setGroups] = useState<Group[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   // Fetch groups for the current user
@@ -35,6 +48,7 @@ const GroupsPage: React.FC = () => {
         showAlert("Error", "User not authenticated");
         return;
       }
+      setCurrentUserId(userId);
 
       const response = await apiClient.get<ApiResponse<Group[]>>(`/group/user/${userId}`);
       setGroups(response.data.data);
@@ -56,21 +70,42 @@ const GroupsPage: React.FC = () => {
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleDeleteGroup = async (groupId: string) => {
+    if (!currentUserId) return;
+    const confirmed = await showConfirm("Leave Group", "Are you sure you want to leave this group?");
+    if (!confirmed) return;
+    try {
+      await apiClient.delete<ApiResponse<Group[]>>(`/group/${groupId}/users/${currentUserId}`);
+      setGroups((prevGroups) =>
+        prevGroups.filter((group) => group.id !== groupId)
+      );
+      showAlert("Success", `User removed from group successfully.`);
+    } catch (error) {
+      console.error(`Failed to delete ${currentUserId} from group:`, error);
+      showAlert("Error", "Failed to delete user from group.");
+    }
+  }
+
   const renderGroupItem = ({ item }: { item: Group }) => (
     <TouchableOpacity
       style={styles.groupCard}
       onPress={() =>
-        router.push(`/(home)/group_chat?groupName=${encodeURIComponent(item.name)}`)
+        router.push(`/(home)/group-chat?groupName=${encodeURIComponent(item.name)}`)
       }
-    >
+    > 
+    <View style={styles.groupNameContainer}>
       <Text style={styles.groupName}>{item.name}</Text>
+      <TouchableOpacity onPress={() => handleDeleteGroup(item.id)}>
+        <Ionicons name="trash-outline" size={20} color="#E53935" />
+      </TouchableOpacity>
+    </View>
     </TouchableOpacity>
   );
 
   return (
     <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
       <View style={styles.container}>
-        <Text style={styles.header}>Your Group Chats</Text>
+        <Text style={styles.header}>My Group Chats</Text>
         <TextInput
           style={styles.searchBar}
           placeholder="Search group chats..."
@@ -118,6 +153,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f8f8',
     borderRadius: 8,
     alignItems: 'center',
+  },
+  groupNameContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 5,
   },
   groupName: {
     fontSize: 18,

@@ -1,0 +1,147 @@
+import React, { useCallback, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import apiClient from '@/utils/apiClient';
+import { useLocalSearchParams } from 'expo-router';
+
+const ChatScreen = () => {
+  const [message, setMessage] = useState("");
+  const [posts, setPosts] = useState<string[]>([]);
+  const { groupName } = useLocalSearchParams<{ groupName: string }>();
+  const navigation = useNavigation();
+
+  const fetchPosts = async (): Promise<void> => {
+    try {
+      const response = await apiClient.get(`/group/${groupName}/posts`);
+      setPosts(response.data.data.posts); 
+    } catch (error) {
+      console.error('Failed to fetch posts:', error);
+      Alert.alert('Error', 'Failed to load posts.');
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts();
+    }, [groupName])
+  );
+
+  const sendPost = async (post: string) => {
+    try {
+      const response = await apiClient.post(`/group/${groupName}/post`, { posts: post });
+      console.log('POST request successful:', response.data);
+      setMessage("");
+      fetchPosts();
+    } catch (error) {
+      console.error('Error posting group:', error);
+      Alert.alert('Error', 'Failed to send message.');
+    }
+  };
+
+  return (
+    <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Group Chat</Text>
+        </View>
+        
+        <ScrollView style={styles.chatContainer}>
+          {posts.map((post, index) => (
+            <View key={index} style={styles.postBubble}>
+              <Text style={styles.postText}>{post}</Text>
+            </View>
+          ))}
+        </ScrollView>
+        
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Type a message..."
+            placeholderTextColor="#aaa"
+            multiline
+            value={message}
+            onChangeText={setMessage}
+          />
+          <TouchableOpacity style={styles.sendButton} onPress={() => sendPost(message)}>
+            <Ionicons name="send" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </LinearGradient>
+  );
+};
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#444',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginLeft: 10,
+  },
+  chatContainer: {
+    flex: 1,
+    marginVertical: 10,
+  },
+  postBubble: {
+    backgroundColor: '#555',
+    padding: 10,
+    borderRadius: 12,
+    marginVertical: 6,
+    alignSelf: 'flex-start',
+    maxWidth: '80%',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  postText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#444',
+    backgroundColor: '#222',
+  },
+  input: {
+    flex: 1,
+    height: 40,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    color: '#fff',
+  },
+  sendButton: {
+    marginLeft: 10,
+    padding: 10,
+    backgroundColor: '#007bff',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+
+export default ChatScreen;

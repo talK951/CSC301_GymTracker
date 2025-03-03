@@ -31,7 +31,7 @@ export default function SignInScreen() {
       
       const jwtToken = unwrapApiResponse<JwtResponseType>(response).token;
       await saveToken(jwtToken);
-      router.push("/(home)/nav_bar");
+      router.push("/(home)/nav-bar");
 
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {

@@ -88,7 +88,7 @@ export default function WorkoutInfo() {
     try {
       await apiClient.put<ApiResponse<Workout>>(`/workout/${workout.id}`, updatedWorkout);
       showAlert("Success", "Workout updated successfully.");
-      router.push("/(home)/nav_bar");
+      router.push("/(home)/nav-bar");
     } catch (error) {
       console.error("Update failed:", error);
       showAlert("Error", "Failed to update workout.");
@@ -102,7 +102,7 @@ export default function WorkoutInfo() {
     try {
       await apiClient.delete(`/workout/${workout.id}`);
       showAlert("Success", "Workout deleted successfully.");
-      router.push("/(home)/nav_bar");
+      router.push("/(home)/nav-bar");
     } catch (error) {
       console.error("Delete failed:", error);
       showAlert("Error", "Failed to delete workout.");

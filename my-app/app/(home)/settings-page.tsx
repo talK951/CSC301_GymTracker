@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
     marginBottom: 10,
+    textAlign: 'center'
   },
   separator: {
     height: 2,

@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import { TextInput, Title } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import apiClient from '@/utils/apiClient';
+import { useRouter } from "expo-router";
 import type { ApiResponse, User } from '@/types/api';
 import UserInfoCard from '@/components/UserInfoCard';
 import { getCurrentUserId } from '@/utils/authHelpers';
 
 const DiscoverPage: React.FC = () => {
-  const navigation = useNavigation();
   const [users, setUsers] = useState<User[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchCurrentUserId = async () => {
@@ -44,7 +44,7 @@ const DiscoverPage: React.FC = () => {
     <UserInfoCard
       user={item}
       onPlusPress={() => {
-        console.log("User Info card is pressed");
+        router.push(`/(home)/create-group?email=${encodeURIComponent(item.email)}`);
       }}
     />
   );
@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+    textAlign: 'center'
   },
   searchBar: {
     height: 40,
