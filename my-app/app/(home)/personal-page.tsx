@@ -1,12 +1,63 @@
-import React from "react";
-import { ScrollView, View, Text, StyleSheet, Dimensions } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ScrollView, View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-// import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-
+import { getCurrentUserId } from "@/utils/authHelpers";
+import apiClient from "@/utils/apiClient";
+import { ApiResponse } from "@/types/api";
 
 const {width, height} = Dimensions.get("window");
 
+
 export default function PersonalPage() {
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [workoutChosen, setWorkoutChosen] = useState("");
+  const [workoutMap, setWorkoutMap] = useState<{ [key: string]: number[] }>({});
+  const [graph, setGraph] = useState<number[]>([]);
+
+  useEffect(() => {
+    setGraph(workoutMap[workoutChosen]);
+  }, [workoutChosen])
+
+  const processData = (exerciseMap: Map<string, number[]>) => {
+    const temp: { [key: string]: number[] } = {};
+
+    for (const [exerciseName, weights] of exerciseMap) {
+      temp[exerciseName] = weights;
+    }
+
+    setWorkoutMap(temp);
+    console.log(temp);
+  }
+  
+  const fetchUsersWorkouts = async () => {
+    try {
+      const userId = await getCurrentUserId();
+      if (userId === null) {
+        showAlert("Error", "User not authenticated");
+        return;
+      }
+      const response = await apiClient.get<ApiResponse<any>>(`/exrecises/user/${userId}`);
+      if (response.data && response.data.data) {
+        // Convert the response object into a Map
+        const exerciseMap = new Map<string, number[]>(Object.entries(response.data.data));
+        processData(exerciseMap);
+        console.log(exerciseMap);
+      } else {
+        showAlert("Error", "Invalid response format");
+      }
+      
+    } catch (error) {
+      console.error("Failed to fetch workouts of user:", error);
+      showAlert("Error", "Failed to load workouts of user.");
+    }
+  };
+
+  const handleOptionSelect = async (option: string) => {
+    setWorkoutChosen(option); // Update state to trigger useEffect
+    setIsDropdownVisible(false); // Close dropdown after selection
+    await fetchUsersWorkouts();
+  };
+
   return (
     <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -39,42 +90,45 @@ export default function PersonalPage() {
             ))}
           </View>
 
+      <View style={styles.graphSection}>
+      <Text style={styles.sectionTitle}>{workoutChosen} Progress</Text>
 
-          {/* <div className="w-full p-4 bg-white shadow-md rounded-lg">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Workout Overview</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="workout" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div> */}
+      {/* Dropdown Button */}
+      <TouchableOpacity
+        style={styles.dropdownButton}
+        onPress={() => setIsDropdownVisible(!isDropdownVisible)}
+      >
+        <Text style={styles.dropdownButtonText}>⋮</Text>
+      </TouchableOpacity>
 
-
-          {/* Gym Progress Graph */}
-          <View style={styles.graphSection}>
-            <Text style={styles.sectionTitle}>🏋️‍♂️ Bench Press Progress</Text>
-            <View style={styles.graphContainer}>
-              <View style={styles.graphLine} />
-
-              {/* Graph Data Points */}
-              {graphData.map((data, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.graphDot,
-                    { left: `${data.x}%`, bottom: `${data.y}%` },
-                  ]}
-                >
-                  <Text style={styles.graphLabel}>{data.weight}</Text>
-                </View>
-              ))}
-            </View>
+      {/* Dropdown Menu */}
+      {isDropdownVisible && (
+          <View style={styles.dropdownMenu}>
+            {Object.keys(workoutMap).map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.dropdownItem}
+                onPress={() => handleOptionSelect(option)}
+              >
+                <Text style={styles.dropdownItemText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
+        )}
+
+          <View style={styles.graphContainer}>
+            <View style={styles.graphLine} />
+            {/* Graph Data Points */}
+            {graphData.map((data, index) => (
+              <View
+                key={index}
+                style={[styles.graphDot, { left: `${data.x}%`, bottom: `${data.y}%` }]}
+              >
+                <Text style={styles.graphLabel}>{data.weight}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
 
 
           {/* Consistency */}
@@ -257,4 +311,45 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: "#555",
   },
+  dropdownButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#EEE",
+    borderRadius: 5,
+  },
+  dropdownButtonText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  dropdownMenu: {
+    position: "absolute",
+    top: 40,
+    right: 10,
+    backgroundColor: "#FFF",
+    borderRadius: 5,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    zIndex: 10, // Ensure it appears above other elements
+  },
+  dropdownItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: "#333",
+  },
 });
+
+function showAlert(arg0: string, arg1: string) {
+  throw new Error("Function not implemented.");
+}
