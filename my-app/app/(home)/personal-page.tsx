@@ -1,91 +1,139 @@
-import React, { useState, useEffect } from "react";
-import { ScrollView, View, Text, StyleSheet, Dimensions } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ScrollView, View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import apiClient from '@/utils/apiClient';
-import {getCurrentUserId} from "@/utils/authHelpers";
+import { getCurrentUserId } from "@/utils/authHelpers";
+import apiClient from "@/utils/apiClient";
+import { ApiResponse } from "@/types/api";
 import { Workout } from "@/types/api";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 
 const {width, height} = Dimensions.get("window");
 
 const fetchWorkoutData = async (setWorkoutData: React.Dispatch<React.SetStateAction<Workout[] | null>>) => {
-  const data = (await apiClient.get(`/workout/user/${await getCurrentUserId()}`));
-  if (data === null) {
-    console.error("Could not fetch workout data");
-    return;
-  }
-
-  const workoutData: Workout[] = data.data.data.workouts;
-  const monthData: Workout[] = [];
-  for (let workout of workoutData) {
-    const month = Number(workout.startTime.toString().split('T')[0].split('-')[1]);
-    const thisMonth = new Date().getMonth() + 1;
-    if (month === thisMonth) {
-      monthData.push(workout);
+    const data = (await apiClient.get(`/workout/user/${await getCurrentUserId()}`));
+    if (data === null) {
+        console.error("Could not fetch workout data");
+        return;
     }
-  }
 
-  setWorkoutData(monthData);
+    const workoutData: Workout[] = data.data.data.workouts;
+    const monthData: Workout[] = [];
+    for (let workout of workoutData) {
+        const month = Number(workout.startTime.toString().split('T')[0].split('-')[1]);
+        const thisMonth = new Date().getMonth() + 1;
+        if (month === thisMonth) {
+            monthData.push(workout);
+        }
+    }
+
+    setWorkoutData(monthData);
 }
 
 const fetchNumWorkouts = async (data: Workout[] | null, setNumWorkouts: React.Dispatch<React.SetStateAction<number>>) => {
-  if (data === null) {
-    return;
-  }
+    if (data === null) {
+        return;
+    }
 
-  setNumWorkouts(data.length);
+    setNumWorkouts(data.length);
 }
 
 const fetchLongestStreak = async (data: Workout[] | null, setLongestStreak: React.Dispatch<React.SetStateAction<number>>) => {
-  if (data === null || data.length === 0) {
-    setLongestStreak(0);
-    return;
-  }
+    if (data === null || data.length === 0) {
+        setLongestStreak(0);
+        return;
+    }
 
-  // 1. Extract date parts and remove duplicates
-  const uniqueDates = new Set(
-      data.map(workout => workout.startTime.toString().split('T')[0])
-  );
+    // 1. Extract date parts and remove duplicates
+    const uniqueDates = new Set(
+        data.map(workout => workout.startTime.toString().split('T')[0])
+    );
 
-  // 2. Convert to Date objects and sort chronologically
-  const sortedDates = Array.from(uniqueDates)
-      .map(dateStr => new Date(`${dateStr}T00:00:00Z`))
-      .sort((a, b) => a.getTime() - b.getTime());
+    // 2. Convert to Date objects and sort chronologically
+    const sortedDates = Array.from(uniqueDates)
+        .map(dateStr => new Date(`${dateStr}T00:00:00Z`))
+        .sort((a, b) => a.getTime() - b.getTime());
 
-  let maxStreak = 1;
-  let currentStreak = 1;
+    let maxStreak = 1;
+    let currentStreak = 1;
 
-  // 3. Check consecutive dates in sorted order
-  for (let i = 1; i < sortedDates.length; i++) {
-      const prevTime = sortedDates[i - 1].getTime();
-      const currTime = sortedDates[i].getTime();
-      
-      // Calculate exact day difference between dates
-      const dayDiff = (currTime - prevTime) / (1000 * 60 * 60 * 24);
+    // 3. Check consecutive dates in sorted order
+    for (let i = 1; i < sortedDates.length; i++) {
+        const prevTime = sortedDates[i - 1].getTime();
+        const currTime = sortedDates[i].getTime();
 
-      if (dayDiff === 1) {
-          currentStreak++;
-          maxStreak = Math.max(maxStreak, currentStreak);
-      } else if (dayDiff > 1) {
-          currentStreak = 1; // Reset streak for gaps >1 day
-      }
-  }
+        // Calculate exact day difference between dates
+        const dayDiff = (currTime - prevTime) / (1000 * 60 * 60 * 24);
 
-  setLongestStreak(maxStreak);
+        if (dayDiff === 1) {
+            currentStreak++;
+            maxStreak = Math.max(maxStreak, currentStreak);
+        } else if (dayDiff > 1) {
+            currentStreak = 1; // Reset streak for gaps >1 day
+        }
+    }
+
+    setLongestStreak(maxStreak);
 }
 
-const PersonalPage = () => {
+export default function PersonalPage() {
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+    const [workoutChosen, setWorkoutChosen] = useState("");
+    const [workoutMap, setWorkoutMap] = useState<{ [key: string]: number[] }>({});
+    const [graph, setGraph] = useState<number[]>([]);
+    const [workoutData, setWorkoutData] = useState<Workout[] | null>(null);
+    const [numWorkouts, setNumWorkouts] = useState<number>(0);
+    const [longestStreak, setLongestStreak] = useState<number>(0);
 
-  const [workoutData, setWorkoutData] = useState<Workout[] | null>(null);
-  const [numWorkouts, setNumWorkouts] = useState<number>(0);
-  const [longestStreak, setLongestStreak] = useState<number>(0);
+    useFocusEffect(() => {
+        fetchWorkoutData(setWorkoutData)
+        fetchNumWorkouts(workoutData, setNumWorkouts)
+        fetchLongestStreak(workoutData, setLongestStreak)
+    });
 
-  useFocusEffect(() => {
-    fetchWorkoutData(setWorkoutData)
-    fetchNumWorkouts(workoutData, setNumWorkouts)
-    fetchLongestStreak(workoutData, setLongestStreak)
-  });
-  
+    useEffect(() => {
+        setGraph(workoutMap[workoutChosen]);
+    }, [workoutChosen])
+
+  const processData = (exerciseMap: Map<string, number[]>) => {
+    const temp: { [key: string]: number[] } = {};
+
+    for (const [exerciseName, weights] of exerciseMap) {
+      temp[exerciseName] = weights;
+    }
+
+    setWorkoutMap(temp);
+    console.log(temp);
+  }
+
+  const fetchUsersWorkouts = async () => {
+    try {
+      const userId = await getCurrentUserId();
+      if (userId === null) {
+        showAlert("Error", "User not authenticated");
+        return;
+      }
+      const response = await apiClient.get<ApiResponse<any>>(`/exrecises/user/${userId}`);
+      if (response.data && response.data.data) {
+        // Convert the response object into a Map
+        const exerciseMap = new Map<string, number[]>(Object.entries(response.data.data));
+        processData(exerciseMap);
+        console.log(exerciseMap);
+      } else {
+        showAlert("Error", "Invalid response format");
+      }
+
+    } catch (error) {
+      console.error("Failed to fetch workouts of user:", error);
+      showAlert("Error", "Failed to load workouts of user.");
+    }
+  };
+
+  const handleOptionSelect = async (option: string) => {
+    setWorkoutChosen(option); // Update state to trigger useEffect
+    setIsDropdownVisible(false); // Close dropdown after selection
+    await fetchUsersWorkouts();
+  };
+
   return (
     <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -118,6 +166,45 @@ const PersonalPage = () => {
             ))}
           </View>
 
+      <View style={styles.graphSection}>
+      <Text style={styles.sectionTitle}>{workoutChosen} Progress</Text>
+
+      {/* Dropdown Button */}
+      <TouchableOpacity
+        style={styles.dropdownButton}
+        onPress={() => setIsDropdownVisible(!isDropdownVisible)}
+      >
+        <Text style={styles.dropdownButtonText}>⋮</Text>
+      </TouchableOpacity>
+
+      {/* Dropdown Menu */}
+      {isDropdownVisible && (
+          <View style={styles.dropdownMenu}>
+            {Object.keys(workoutMap).map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.dropdownItem}
+                onPress={() => handleOptionSelect(option)}
+              >
+                <Text style={styles.dropdownItemText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+          <View style={styles.graphContainer}>
+            <View style={styles.graphLine} />
+            {/* Graph Data Points */}
+            {graphData.map((data, index) => (
+              <View
+                key={index}
+                style={[styles.graphDot, { left: `${data.x}%`, bottom: `${data.y}%` }]}
+              >
+                <Text style={styles.graphLabel}>{data.weight}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
 
           {/* Gym Progress Graph */}
           <View style={styles.graphSection}>
@@ -316,6 +403,48 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: "#555",
   },
+  dropdownButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#EEE",
+    borderRadius: 5,
+  },
+  dropdownButtonText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  dropdownMenu: {
+    position: "absolute",
+    top: 40,
+    right: 10,
+    backgroundColor: "#FFF",
+    borderRadius: 5,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    zIndex: 10, // Ensure it appears above other elements
+  },
+  dropdownItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: "#333",
+  },
 });
+
+function showAlert(arg0: string, arg1: string) {
+  throw new Error("Function not implemented.");
+}
+
 
 export default PersonalPage;

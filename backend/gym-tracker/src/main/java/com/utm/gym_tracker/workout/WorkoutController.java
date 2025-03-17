@@ -1,10 +1,9 @@
 package com.utm.gym_tracker.workout;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,8 +53,8 @@ public class WorkoutController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<ApiResponse<Map<String, List<WorkoutResponse>>>> getWorkoutsForUser(@PathVariable Long userId) {
+    @GetMapping("/exrecises/{userId}")
+    public ResponseEntity<ApiResponse<Map<String, ArrayList<Integer>>>> getExercisesForUser(@PathVariable Long userId) {
         Optional<User> userOpt = userService.getUserByID(userId);
         User authUser = getAuthenticatedUser();
 
@@ -65,16 +64,22 @@ public class WorkoutController {
         if (!authUser.getID().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        
+
         List<Workout> workouts = workoutService.getWorkoutsForUser(userId);
-        List<WorkoutResponse> workoutDtos = workouts.stream()
-                .map(this::mapWorkoutToDto)
-                .collect(Collectors.toList());
-        
-        Map<String, List<WorkoutResponse>> data = new HashMap<>();
-        data.put("workouts", workoutDtos);
-        
-        ApiResponse<Map<String, List<WorkoutResponse>>> response = new ApiResponse<>("Success", data);
+
+        workouts.sort(Comparator.comparing(Workout::getStartTime));
+
+        HashMap<String, ArrayList<Integer>> exercisesMap = new HashMap<>();
+
+        for (Workout workout : workouts) {
+            for (Exercise exercise : workout.getExercises()) {
+                String exerciseName = exercise.getExercise();
+                int weight = exercise.getWeight().intValue(); // Convert Double to Integer
+                exercisesMap.computeIfAbsent(exerciseName, k -> new ArrayList<>()).add(weight);
+            }
+        }
+
+        ApiResponse<Map<String, ArrayList<Integer>>> response = new ApiResponse<>("Success", exercisesMap);
         return ResponseEntity.ok(response);
     }
 
