@@ -15,7 +15,17 @@ const fetchWorkoutData = async (setWorkoutData: React.Dispatch<React.SetStateAct
     return;
   }
 
-  setWorkoutData(data.data.data.workouts);
+  const workoutData: Workout[] = data.data.data.workouts;
+  const monthData: Workout[] = [];
+  for (let workout of workoutData) {
+    const month = Number(workout.startTime.toString().split('T')[0].split('-')[1]);
+    const thisMonth = new Date().getMonth() + 1;
+    if (month === thisMonth) {
+      monthData.push(workout);
+    }
+  }
+
+  setWorkoutData(monthData);
 }
 
 const fetchNumWorkouts = async (data: Workout[] | null, setNumWorkouts: React.Dispatch<React.SetStateAction<number>>) => {
@@ -24,7 +34,7 @@ const fetchNumWorkouts = async (data: Workout[] | null, setNumWorkouts: React.Di
   }
 
   setNumWorkouts(data.length);
-}  
+}
 
 const fetchLongestStreak = async (data: Workout[] | null, setLongestStreak: React.Dispatch<React.SetStateAction<number>>) => {
   if (data === null || data.length === 0) {
