@@ -15,28 +15,28 @@ export interface User {
   utorID: string;
 }
 
+export const fetchCurrentUser = async (setUser: React.Dispatch<React.SetStateAction<User | null>>) => {
+  try {
+    const userId = await getCurrentUserId();
+    if (userId === null) {
+      showAlert("Error", "User not authenticated");
+      return;
+    }
+    const response = await apiClient.get(`/user/${userId}`);
+    setUser(response.data.data);
+  } catch (error) {
+    console.error(error);
+    showAlert("Error", "Failed to fetch user.");
+  }
+};
+
 const SettingsPage = () => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetchCurrentUser();
+    fetchCurrentUser(setUser);
   }, []);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const userId = await getCurrentUserId();
-      if (userId === null) {
-        showAlert("Error", "User not authenticated");
-        return;
-      }
-      const response = await apiClient.get(`/user/${userId}`);
-      setUser(response.data.data);
-    } catch (error) {
-      console.error(error);
-      showAlert("Error", "Failed to fetch user.");
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function showAlert(title: string, message: string) {
+export function showAlert(title: string, message: string) {
   if (typeof window !== "undefined" && window.alert) {
     window.alert(`${title}: ${message}`);
   } else {
