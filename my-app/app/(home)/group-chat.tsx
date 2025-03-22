@@ -1,43 +1,83 @@
-import React, { useCallback, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import apiClient from '@/utils/apiClient';
 import { useLocalSearchParams } from 'expo-router';
+import { ChatStompClient } from '@/utils/ChatStompClient';
+import { getCurrentUserId } from '@/utils/authHelpers';
+import Constants from 'expo-constants';
+import { Post } from '@/types/api';
 
 const ChatScreen = () => {
   const [message, setMessage] = useState("");
-  const [posts, setPosts] = useState<string[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const { groupName } = useLocalSearchParams<{ groupName: string }>();
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const navigation = useNavigation();
 
-  const fetchPosts = async (): Promise<void> => {
-    try {
-      const response = await apiClient.get(`/group/${groupName}/posts`);
-      setPosts(response.data.data.posts); 
-    } catch (error) {
-      console.error('Failed to fetch posts:', error);
-      Alert.alert('Error', 'Failed to load posts.');
+  const stompRef = useRef<ChatStompClient | null>(null);
+  const wsUrl = Constants.expoConfig?.extra?.WS_URL;
+
+  const handleIncomingMessage = (payload: any) => {
+    console.log("Received payload:", payload);
+    if (payload) {
+      const newPost: Post = {
+        id: payload.id,
+        content: payload.content,
+        sender: payload.sender,
+        timestamp: payload.timestamp,
+      };
+      setPosts((prevPosts) => [...prevPosts, newPost]);
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchPosts();
-    }, [groupName])
-  );
+  useEffect(() => {
+    if (!groupName) return;
 
-  const sendPost = async (post: string) => {
+    fetchPosts();
+
+    const fetchCurrentUserId = async () => {
+      const id = await getCurrentUserId();
+      setCurrentUserId(id);
+    };
+
+    fetchCurrentUserId();
+
+    // Build the STOMP client with the same URL you used in WebSocketConfig
+    const client = new ChatStompClient(wsUrl, groupName);
+    client.setMessageCallback(handleIncomingMessage);
+
+    // Connect to STOMP
+    client.connect();
+    stompRef.current = client;
+
+    return () => {
+      client.disconnect();
+    };
+  }, [groupName]);
+
+  const fetchPosts = async () => {
     try {
-      const response = await apiClient.post(`/group/${groupName}/post`, { posts: post });
-      console.log('POST request successful:', response.data);
-      setMessage("");
-      fetchPosts();
+      const response = await apiClient.get(`/posts/group/${groupName}`);
+      const fetchedPosts: Post[] = response.data.data.map((p: any) => ({
+        id: p.id,
+        content: p.content,
+        sender: p.senderUsername,
+        timestamp: p.timestamp,
+      }));
+      setPosts(fetchedPosts);
     } catch (error) {
-      console.error('Error posting group:', error);
-      Alert.alert('Error', 'Failed to send message.');
+      console.error('Error fetching posts:', error);
+      Alert.alert('Error', 'Failed to load posts.');
     }
+  }
+
+  const sendPost = () => {
+    if (!stompRef.current || !message.trim()) return;
+    stompRef.current.sendMessage(message.trim(), String(currentUserId));
+    setMessage('');
   };
 
   return (
@@ -49,11 +89,14 @@ const ChatScreen = () => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Group Chat</Text>
         </View>
-        
+
         <ScrollView style={styles.chatContainer}>
-          {posts.map((post, index) => (
-            <View key={index} style={styles.postBubble}>
-              <Text style={styles.postText}>{post}</Text>
+          {posts.map((post) => (
+            <View key={post.timestamp} style={styles.postBubble}>
+              <Text style={styles.postHeader}>
+                {post.sender}                {new Date(post.timestamp).toLocaleTimeString()}
+              </Text>
+              <Text style={styles.postContent}>{post.content}</Text>
             </View>
           ))}
         </ScrollView>
@@ -67,7 +110,7 @@ const ChatScreen = () => {
             value={message}
             onChangeText={setMessage}
           />
-          <TouchableOpacity style={styles.sendButton} onPress={() => sendPost(message)}>
+          <TouchableOpacity style={styles.sendButton} onPress={() => sendPost()}>
             <Ionicons name="send" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -114,10 +157,13 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
-  postText: {
-    color: '#fff',
-    fontSize: 16,
+  postHeader: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ccc',
+    marginBottom: 4,
   },
+  postContent: { color: '#fff', fontSize: 16 },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',

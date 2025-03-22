@@ -44,6 +44,13 @@ export interface User {
     workouts?: Workout[];
 }
 
+export interface Post {
+    id: number;
+    content: string;
+    sender: string;
+    timestamp: string;
+}
+
 export type CreateExerciseDTO = Omit<Exercise, "id" | "createdAt">;
 
 export type WorkoutDTO = {
