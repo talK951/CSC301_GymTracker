@@ -33,7 +33,12 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/user/auth", "/api/user").permitAll()
+                .requestMatchers(
+                    "/api/user/auth",
+                    "/api/user",
+                    "/api/user/*/upload-profile-pic" // this is what you're adding
+                ).permitAll()
+                .requestMatchers("/uploads/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(new JwtAuthenticationFilter(jwtService, userService),
