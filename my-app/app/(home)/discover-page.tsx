@@ -28,6 +28,8 @@ const DiscoverPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await apiClient.get<ApiResponse<User[]>>('/user/all');
+      console.log("Fetched users:", response.data.data);
+
       setUsers(response.data.data);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -36,9 +38,9 @@ const DiscoverPage: React.FC = () => {
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) && user.id !== currentUserId
-  );
+  const filteredUsers = Array.isArray(users) ? users.filter(user =>
+    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) && user.id !== currentUserId
+  ) : [];
 
   const renderUserItem = ({ item }: { item: User }) => (
     <UserInfoCard

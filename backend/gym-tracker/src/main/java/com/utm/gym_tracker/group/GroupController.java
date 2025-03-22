@@ -55,7 +55,7 @@ public class GroupController {
             group.getId(),
             group.getName(),
             group.getUsers().stream()
-                .map(user -> new UserSummary(user.getID(), user.getUsername(), user.getName(), user.getEmail()))
+                .map(user -> new UserSummary(user.getID(), user.getUsername(), user.getName(), user.getEmail(), user.getProfilePicture()))
                 .toList()
         );
         ApiResponse<GroupResponse> response = new ApiResponse<>("Success", addedGroup);
@@ -133,7 +133,7 @@ public class GroupController {
         }
 
         List<UserSummary> userSummaries = group.getUsers().stream()
-                .map(user -> new UserSummary(user.getID(), user.getUsername(), user.getName(), user.getEmail()))
+                .map(user -> new UserSummary(user.getID(), user.getUsername(), user.getName(), user.getEmail(), user.getProfilePicture()))
                 .collect(Collectors.toList());
 
         GroupResponse groupResponse = new GroupResponse(group.getId(), group.getName(), userSummaries);
