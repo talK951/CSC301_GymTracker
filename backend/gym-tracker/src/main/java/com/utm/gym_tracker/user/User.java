@@ -54,7 +54,7 @@ public class User {
         this.utorID = utorID;
         this.email = email;
         this.password = password;
-        this.profilePicture = "Default"; // TODO: Set to default path
+        this.profilePicture = "Default";
     }
 
     public User() {}

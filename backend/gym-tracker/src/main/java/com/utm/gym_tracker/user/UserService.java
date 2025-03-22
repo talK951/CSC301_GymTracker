@@ -100,10 +100,8 @@ public class UserService {
         Files.write(filePath, file.getBytes());
 
         // Save relative path to DB
-        user.setProfilePicture(filePath.toString());
+        user.setProfilePicture(uploadDir + fileName);
+
         userRepository.save(user);
     }
-
-
-
 }

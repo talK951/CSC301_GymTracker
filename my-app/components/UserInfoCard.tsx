@@ -14,11 +14,9 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ user, onPlusPress }) => {
   const API_BASE_URL = Constants.expoConfig?.extra?.API_BASE_URL;
 
   // Hard-coded profile pictire for now
-  const profilePic = "http://localhost:8080/uploads/gg.png"
-  const useUD = user.id;
-
-  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", profilePic, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-  console.log("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY", useUD, "YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
+  const profilePic = user.profilePicture
+  ? `http://localhost:8080/${user.profilePicture}`
+  : 'https://i.pravatar.cc/150?img=70';
 
   return (
     <Card style={styles.card}>
