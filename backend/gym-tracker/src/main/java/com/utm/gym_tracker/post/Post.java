@@ -23,6 +23,14 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    // @Column(columnDefinition = "TEXT")
+    // private String imageUrl;
+    @Column
+    private String s3ObjectKey;
+
+    @Column
+    private Boolean isImage;
+
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
@@ -33,6 +41,7 @@ public class Post {
         this.senderId = senderId;
         this.content = content;
         this.timestamp = timestamp;
+        this.isImage = false; 
     }
 
     public Long getId() {
@@ -61,6 +70,22 @@ public class Post {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getS3ObjectKey() {
+        return s3ObjectKey;
+    }
+
+    public void setS3ObjectKey(String s3ObjectKey) {
+        this.s3ObjectKey = s3ObjectKey;
+    }
+
+    public Boolean getIsImage() {
+        return isImage;
+    }
+
+    public void setIsImage(Boolean isImage) {
+        this.isImage = isImage;
     }
 
     public LocalDateTime getTimestamp() {
