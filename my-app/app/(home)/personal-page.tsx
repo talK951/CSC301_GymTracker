@@ -5,8 +5,7 @@ import { getCurrentUserId } from "@/utils/authHelpers";
 import apiClient from "@/utils/apiClient";
 import { ApiResponse } from "@/types/api";
 
-const {width, height} = Dimensions.get("window");
-
+const { width, height } = Dimensions.get("window");
 
 export default function PersonalPage() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -14,21 +13,32 @@ export default function PersonalPage() {
   const [workoutMap, setWorkoutMap] = useState<{ [key: string]: number[] }>({});
   const [graph, setGraph] = useState<number[]>([]);
 
+  // On mount, fetch workouts.
   useEffect(() => {
-    setGraph(workoutMap[workoutChosen]);
-  }, [workoutChosen])
+    fetchUsersWorkouts();
+  }, []);
+
+  // Update the graph when a workout is chosen or the workoutMap changes.
+  useEffect(() => {
+    if (workoutChosen && workoutMap[workoutChosen]) {
+      setGraph(workoutMap[workoutChosen]);
+    }
+  }, [workoutChosen, workoutMap]);
 
   const processData = (exerciseMap: Map<string, number[]>) => {
     const temp: { [key: string]: number[] } = {};
-
     for (const [exerciseName, weights] of exerciseMap) {
       temp[exerciseName] = weights;
     }
-
     setWorkoutMap(temp);
-    console.log(temp);
-  }
-  
+    console.log("Processed workout map:", temp);
+
+    // Auto-select the first workout if none is selected.
+    if (!workoutChosen && Object.keys(temp).length > 0) {
+      setWorkoutChosen(Object.keys(temp)[0]);
+    }
+  };
+
   const fetchUsersWorkouts = async () => {
     try {
       const userId = await getCurrentUserId();
@@ -36,27 +46,48 @@ export default function PersonalPage() {
         showAlert("Error", "User not authenticated");
         return;
       }
-      const response = await apiClient.get<ApiResponse<any>>(`/exrecises/user/${userId}`);
+      const response = await apiClient.get<ApiResponse<any>>(`workout/exrecises/${userId}`);
       if (response.data && response.data.data) {
-        // Convert the response object into a Map
+        // Convert the response object into a Map.
         const exerciseMap = new Map<string, number[]>(Object.entries(response.data.data));
         processData(exerciseMap);
-        console.log(exerciseMap);
       } else {
         showAlert("Error", "Invalid response format");
       }
-      
     } catch (error) {
       console.error("Failed to fetch workouts of user:", error);
       showAlert("Error", "Failed to load workouts of user.");
     }
   };
 
-  const handleOptionSelect = async (option: string) => {
-    setWorkoutChosen(option); // Update state to trigger useEffect
-    setIsDropdownVisible(false); // Close dropdown after selection
-    await fetchUsersWorkouts();
+  // When an option is selected, update the chosen workout.
+  const handleOptionSelect = (option: string) => {
+    setWorkoutChosen(option);
+    setIsDropdownVisible(false);
   };
+
+  // Compute graph points based on the fetched data (graph array).
+  // x is distributed evenly; y is scaled between the min and max weight.
+  const graphPoints = (() => {
+    if (!graph || graph.length === 0) return [];
+    const margin = 10; // percent margin on each side
+    const minWeight = Math.min(...graph);
+    const maxWeight = Math.max(...graph);
+    return graph.map((weight, i) => {
+      // x is evenly spaced with a margin on left and right.
+      const x =
+        graph.length === 1
+          ? 50
+          : margin + (i / (graph.length - 1)) * (100 - 2 * margin);
+      // y is scaled between min and max with margin on bottom and top.
+      const y =
+        maxWeight - minWeight === 0
+          ? 50
+          : margin +
+            ((weight - minWeight) / (maxWeight - minWeight)) * (100 - 2 * margin);
+      return { x, y, weight };
+    });
+  })();
 
   return (
     <LinearGradient colors={["#1A1A1A", "#333333"]} style={styles.background}>
@@ -67,8 +98,6 @@ export default function PersonalPage() {
           {/* Summary Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Daily Summary</Text>
-
-            {/* Day */}
             <View style={styles.weekRow}>
               {["Mon", "Tues", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => (
                 <View key={index} style={styles.dayColumn}>
@@ -76,9 +105,6 @@ export default function PersonalPage() {
                 </View>
               ))}
             </View>
-
-
-            {/* week */}
             {Array.from({ length: 3 }).map((_, weekIndex) => (
               <View key={weekIndex} style={styles.weekRow}>
                 {Array.from({ length: 7 }).map((_, dayIndex) => (
@@ -90,53 +116,52 @@ export default function PersonalPage() {
             ))}
           </View>
 
-      <View style={styles.graphSection}>
-      <Text style={styles.sectionTitle}>{workoutChosen} Progress</Text>
-
-      {/* Dropdown Button */}
-      <TouchableOpacity
-        style={styles.dropdownButton}
-        onPress={() => setIsDropdownVisible(!isDropdownVisible)}
-      >
-        <Text style={styles.dropdownButtonText}>⋮</Text>
-      </TouchableOpacity>
-
-      {/* Dropdown Menu */}
-      {isDropdownVisible && (
-          <View style={styles.dropdownMenu}>
-            {Object.keys(workoutMap).map((option, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.dropdownItem}
-                onPress={() => handleOptionSelect(option)}
-              >
-                <Text style={styles.dropdownItemText}>{option}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-          <View style={styles.graphContainer}>
-            <View style={styles.graphLine} />
-            {/* Graph Data Points */}
-            {graphData.map((data, index) => (
-              <View
-                key={index}
-                style={[styles.graphDot, { left: `${data.x}%`, bottom: `${data.y}%` }]}
-              >
-                <Text style={styles.graphLabel}>{data.weight}</Text>
+          {/* Graph Section */}
+          <View style={styles.graphSection}>
+            <Text style={styles.sectionTitle}>
+              {workoutChosen ? `${workoutChosen} Progress` : "Workout Progress"}
+            </Text>
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={() => setIsDropdownVisible(!isDropdownVisible)}
+            >
+              <Text style={styles.dropdownButtonText}>⋮</Text>
+            </TouchableOpacity>
+            {isDropdownVisible && (
+              <View style={styles.dropdownMenu}>
+                {Object.keys(workoutMap).map((option, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.dropdownItem}
+                    onPress={() => handleOptionSelect(option)}
+                  >
+                    <Text style={styles.dropdownItemText}>{option}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            ))}
+            )}
+
+            <View style={styles.graphContainer}>
+              <View style={styles.graphLine} />
+              {graphPoints.map((data, index) => (
+                <View
+                  key={index}
+                  style={[styles.graphDot, { left: `${data.x}%`, bottom: `${data.y}%` }]}
+                >
+                  <Text style={styles.graphLabel}>{data.weight}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
 
-
-          {/* Consistency */}
+          {/* Consistency Section */}
           <View style={styles.consistencySection}>
             <Text style={styles.sectionTitle}>📅 Consistency</Text>
             <Text style={styles.consistencyHeader}>This month you..</Text>
             {consistencyData.map((item, index) => (
-              <Text key={index} style={styles.consistencyItem}>• {item}</Text>
+              <Text key={index} style={styles.consistencyItem}>
+                • {item}
+              </Text>
             ))}
           </View>
         </View>
@@ -145,16 +170,7 @@ export default function PersonalPage() {
   );
 }
 
-// Sample Graph Data (X = Time Progression, Y = Weight Lifted)
-const graphData = [
-  { x: 10, y: 20, weight: "185" },
-  { x: 30, y: 35, weight: "195" },
-  { x: 50, y: 50, weight: "200" },
-  { x: 70, y: 60, weight: "205" },
-  { x: 90, y: 70, weight: "215" },
-];
-
-// Sample Consistency Data
+// Sample Consistency Data remains unchanged.
 const consistencyData = [
   "Went to the gym 10 times",
   "Hit 1 PR",
@@ -162,7 +178,7 @@ const consistencyData = [
   "Completed 8 cardio sessions",
 ];
 
-//  assign colors for daily summary
+// Assign colors for daily summary.
 const getBoxColor = (weekIndex: number, dayIndex: number) => {
   const colors = [
     ["red", "red", "yellow", "red", "purple", "red", "white"],
@@ -178,14 +194,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   scrollContainer: {
-    flexGrow: 1, 
+    flexGrow: 1,
     alignItems: "center",
     paddingBottom: 50,
   },
   container: {
     flex: 1,
     flexDirection: "column",
-    alignItems: "center", 
+    alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
     width: "80%",
@@ -238,7 +254,6 @@ const styles = StyleSheet.create({
     borderColor: "#333",
     marginVertical: 2,
   },
-
   // Graph Section
   graphSection: {
     backgroundColor: "#FFF",
@@ -285,7 +300,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -15,
   },
-
   // Consistency Section
   consistencySection: {
     backgroundColor: "#FFF",
@@ -338,7 +352,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    zIndex: 10, // Ensure it appears above other elements
+    zIndex: 10,
   },
   dropdownItem: {
     paddingVertical: 8,
@@ -350,6 +364,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function showAlert(arg0: string, arg1: string) {
-  throw new Error("Function not implemented.");
+// A placeholder alert function. Replace or remove this as needed.
+function showAlert(title: string, message: string) {
+  console.warn(`${title}: ${message}`);
 }
