@@ -1,7 +1,7 @@
 import React from "react";
-import { Button, View, Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons'; // import an icon set
+import { Ionicons } from '@expo/vector-icons';
 import PersonalPage from "./personal-page";
 import SettingsPage from "./settings-page";
 import DiscoverPage from "./discover-page";
@@ -41,15 +41,6 @@ export default function navigateBar() {
         headerShown: false
       }}/>
       <page.Screen 
-        name="Create Group" 
-        component={TestScreen} 
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add" size={size} color={color} />
-          ),
-        headerShown: false
-      }}/>
-      <page.Screen 
       name="Discover Page" 
       component={DiscoverPage} 
       options={{
@@ -68,14 +59,6 @@ export default function navigateBar() {
         headerShown: false
       }}/>
     </page.Navigator>
-  );
-};
-
-function TestScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Button title="This screen is what the navigation bar is currently switched to" onPress={() => Alert.alert('Button Pressed!')} />
-    </View>
   );
 };
 
