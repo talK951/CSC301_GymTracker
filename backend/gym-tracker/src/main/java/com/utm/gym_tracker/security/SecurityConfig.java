@@ -33,7 +33,12 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/user/auth", "/api/user").permitAll()
+                .requestMatchers(
+                    "/api/user/auth",
+                    "/api/user",
+                    "/api/user/*/upload-profile-pic"
+                ).permitAll()
+                .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .anyRequest().authenticated()
             )

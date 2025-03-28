@@ -3,11 +3,16 @@ package com.utm.gym_tracker.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.nio.file.Path;
+import java.io.IOException;
 
 @Component
 public class UserService {
@@ -74,5 +79,27 @@ public class UserService {
             return user;
         }
         return Optional.empty();
+    }
+
+    public void saveProfilePicturePath(Long id, MultipartFile file) throws IOException {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) throw new RuntimeException("User not found");
+
+        User user = optionalUser.get();
+
+        String uploadDir = "uploads/";
+        String fileName = "profile_" + id + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(uploadDir + fileName);
+
+        // Make sure the folder exists
+        Files.createDirectories(filePath.getParent());
+
+        // Save the file to disk
+        Files.write(filePath, file.getBytes());
+
+        // Save relative path to DB
+        user.setProfilePicture(uploadDir + fileName);
+
+        userRepository.save(user);
     }
 }

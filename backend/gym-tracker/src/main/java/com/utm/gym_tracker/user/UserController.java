@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.utm.gym_tracker.dto.ApiResponse;
 import com.utm.gym_tracker.exercise.dto.ExerciseResponse;
@@ -19,8 +20,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+// @RestController
+// @RequestMapping(path = "/api/user")
+@CrossOrigin(origins = "*")
 @RestController
-@RequestMapping(path = "/api/user")
+@RequestMapping("/api/user")
 public class UserController {
     private final UserService userService;
     private final JwtService jwtService;
@@ -30,6 +34,23 @@ public class UserController {
         this.userService = userService;
         this.jwtService = jwtService;
     }
+
+    @PostMapping("/{id}/upload-profile-pic")
+    public ResponseEntity<String> uploadProfilePicture(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file) {
+            
+        System.out.println("Upload request received for user: " + id);
+
+        try {
+            userService.saveProfilePicturePath(id, file);
+            return ResponseEntity.ok("Profile picture uploaded successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Upload failed: " + e.getMessage());
+        }
+    }
+
     
     @PostMapping("/auth")
     public ResponseEntity<ApiResponse<JwtResponse>> authenticateUser(@RequestBody LoginRequest loginRequest) {
@@ -117,7 +138,8 @@ public class UserController {
                 user.getID(),
                 user.getUsername(),
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getProfilePicture()
         ))
         .collect(Collectors.toList());
 

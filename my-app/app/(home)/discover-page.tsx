@@ -28,6 +28,8 @@ const DiscoverPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await apiClient.get<ApiResponse<User[]>>('/user/all');
+      console.log("Fetched users:", response.data.data);
+
       setUsers(response.data.data);
     } catch (error) {
       console.error('Error fetching users:', error);

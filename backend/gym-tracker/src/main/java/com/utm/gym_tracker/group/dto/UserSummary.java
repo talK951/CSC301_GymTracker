@@ -5,14 +5,16 @@ public class UserSummary {
     private String username;
     private String name;
     private String email;
+    private String profilePicture;
 
     public UserSummary() {}
 
-    public UserSummary(Long id, String username, String name, String email) {
+    public UserSummary(Long id, String username, String name, String email, String profilePicture) {
         this.id = id;
         this.username = username;
         this.name = name;
         this.email = email;
+        this.profilePicture = profilePicture;
     }
 
     public Long getId() {
@@ -38,5 +40,11 @@ public class UserSummary {
     }
     public void setEmail(String email) {
         this.email = email;
+    }
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }
