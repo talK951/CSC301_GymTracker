@@ -233,27 +233,6 @@ function PersonalPage() {
                         </View>
                     </View>
 
-                    {/* Gym Progress Graph */}
-                    <View style={styles.graphSection}>
-                        <Text style={styles.sectionTitle}>🏋️‍♂️ Bench Press Progress</Text>
-                        <View style={styles.graphContainer}>
-                            <View style={styles.graphLine} />
-
-                            {/* Graph Data Points */}
-                            {graphData.map((data, index) => (
-                                <View
-                                    key={index}
-                                    style={[
-                                        styles.graphDot,
-                                        { left: `${data.x}%`, bottom: `${data.y}%` },
-                                    ]}
-                                >
-                                    <Text style={styles.graphLabel}>{data.weight}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
-
                     {/* Consistency Section */}
                     <View style={styles.consistencySection}>
                         <Text style={styles.sectionTitle}>📅 Consistency</Text>
@@ -271,23 +250,14 @@ function PersonalPage() {
     );
 }
 
-// Sample Graph Data (X = Time Progression, Y = Weight Lifted)
-const graphData = [
-    { x: 10, y: 20, weight: "185" },
-    { x: 30, y: 35, weight: "195" },
-    { x: 50, y: 50, weight: "200" },
-    { x: 70, y: 60, weight: "205" },
-    { x: 90, y: 70, weight: "215" },
-];
-
-//  assign colors for daily summary
+// Assign colors for daily summary.
 const getBoxColor = (weekIndex: number, dayIndex: number) => {
-    const colors = [
-        ["red", "red", "yellow", "red", "purple", "red", "white"],
-        ["white", "red", "red", "yellow", "red", "red", "white"],
-        ["red", "purple", "red", "white", "red", "yellow", "red"],
-    ];
-    return { backgroundColor: colors[weekIndex][dayIndex] };
+  const colors = [
+    ["red", "red", "yellow", "red", "purple", "red", "white"],
+    ["white", "red", "red", "yellow", "red", "red", "white"],
+    ["red", "purple", "red", "white", "red", "yellow", "red"],
+  ];
+  return { backgroundColor: colors[weekIndex][dayIndex] };
 };
 
 const styles = StyleSheet.create({

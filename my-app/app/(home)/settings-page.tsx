@@ -77,38 +77,6 @@ const SettingsPage = () => {
         }
     };
 
-
-    // const pickImage = async () => {
-    //   let result = await ImagePicker.launchImageLibraryAsync({
-    //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    //     allowsEditing: true,
-    //     aspect: [1, 1],
-    //     quality: 1,
-    //   });
-
-    //   if (!result.canceled && result.assets?.[0]?.uri) {
-    //     const uri = result.assets[0].uri;
-    //     setImageUri(uri);
-    //     await uploadImageToServer(uri);
-    //   }
-    // };
-
-
-    // const fetchCurrentUser = async () => {
-    //     try {
-    //         const userId = await getCurrentUserId();
-    //         if (userId === null) {
-    //             showAlert("Error", "User not authenticated");
-    //             return;
-    //         }
-    //         const response = await apiClient.get(`/user/${userId}`);
-    //         setUser(response.data.data);
-    //     } catch (error) {
-    //         console.error(error);
-    //         showAlert("Error", "Failed to fetch user.");
-    //     }
-    // };
-
     const handleLogout = async () => {
         try {
             await deleteToken();
