@@ -36,9 +36,10 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/user/auth",
                     "/api/user",
-                    "/api/user/*/upload-profile-pic" // this is what you're adding
+                    "/api/user/*/upload-profile-pic"
                 ).permitAll()
                 .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers("/ws/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(new JwtAuthenticationFilter(jwtService, userService),

@@ -3,8 +3,8 @@ import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Activity
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, router } from 'expo-router';
 import apiClient from "../../utils/apiClient";
-import { getCurrentUserId } from '@/utils/authHelpers';
-import type { ApiResponse } from "@/types/api";
+import { getCurrentUser } from '@/utils/authHelpers';
+import type { ApiResponse, CurrentUser } from "@/types/api";
 import { Ionicons } from "@expo/vector-icons";
 
 interface Group {
@@ -36,21 +36,21 @@ function showConfirm(title: string, message: string): Promise<boolean> {
 const GroupsPage: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   // Fetch groups for the current user
   const fetchGroups = async () => {
     setLoading(true);
     try {
-      const userId = await getCurrentUserId();
-      if (userId === null) {
+      const user = await getCurrentUser();
+      if (user?.userId === null) {
         showAlert("Error", "User not authenticated");
         return;
       }
-      setCurrentUserId(userId);
+      setUser(user);
 
-      const response = await apiClient.get<ApiResponse<Group[]>>(`/group/user/${userId}`);
+      const response = await apiClient.get<ApiResponse<Group[]>>(`/group/user/${user?.userId}`);
       setGroups(response.data.data);
     } catch (error) {
       console.error('Failed to fetch groups:', error);
@@ -71,17 +71,17 @@ const GroupsPage: React.FC = () => {
   );
 
   const handleDeleteGroup = async (groupId: string) => {
-    if (!currentUserId) return;
+    if (user?.userId) return;
     const confirmed = await showConfirm("Leave Group", "Are you sure you want to leave this group?");
     if (!confirmed) return;
     try {
-      await apiClient.delete<ApiResponse<Group[]>>(`/group/${groupId}/users/${currentUserId}`);
+      await apiClient.delete<ApiResponse<Group[]>>(`/group/${groupId}/users/${user?.userId}`);
       setGroups((prevGroups) =>
         prevGroups.filter((group) => group.id !== groupId)
       );
       showAlert("Success", `User removed from group successfully.`);
     } catch (error) {
-      console.error(`Failed to delete ${currentUserId} from group:`, error);
+      console.error(`Failed to delete ${user?.userId} from group:`, error);
       showAlert("Error", "Failed to delete user from group.");
     }
   }

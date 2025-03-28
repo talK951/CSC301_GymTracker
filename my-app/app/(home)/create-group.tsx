@@ -5,9 +5,9 @@ import { Button, TextInput, Title, Card, ActivityIndicator } from "react-native-
 import { useRouter, useLocalSearchParams } from "expo-router";
 import apiClient from "@/utils/apiClient";
 import { Ionicons } from '@expo/vector-icons';
-import { getCurrentUserId } from "@/utils/authHelpers";
+import { getCurrentUser } from "@/utils/authHelpers";
 import axios from "axios";
-import type { ApiResponse, Group, GroupSummary} from "@/types/api";
+import type { ApiResponse, CurrentUser, Group, GroupSummary} from "@/types/api";
 
 function showAlert(title: string, message: string) {
   if (Platform.OS === "web") {
@@ -21,7 +21,7 @@ const CreateGroup: React.FC = () => {
   const router = useRouter();
   const { email: targetEmail } = useLocalSearchParams<{ email: string }>();
   const [targetUser, setTargetUser] = useState<any>(null);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [existingGroups, setExistingGroups] = useState<GroupSummary[]>([]);
   const [newGroupName, setNewGroupName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -31,11 +31,11 @@ const CreateGroup: React.FC = () => {
     fetchCurrentUser();
     fetchTargetUser();
     fetchExistingGroups();
-  }, [currentUserId]);
+  }, [currentUser?.userId]);
 
   const fetchCurrentUser = async () => {
-    const userId = await getCurrentUserId();
-    setCurrentUserId(userId);
+    const user = await getCurrentUser();
+    setCurrentUser(user);
   };
 
   const fetchTargetUser = async () => {
@@ -50,8 +50,8 @@ const CreateGroup: React.FC = () => {
 
   const fetchExistingGroups = async () => {
     try {
-      if (!currentUserId) return;
-      const response = await apiClient.get<ApiResponse<Group[]>>(`/group/user/${currentUserId}`);
+      if (!currentUser?.userId) return;
+      const response = await apiClient.get<ApiResponse<Group[]>>(`/group/user/${currentUser?.userId}`);
       setExistingGroups(response.data.data);
     } catch (error) {
       console.error("Failed to fetch groups:", error);
@@ -87,7 +87,7 @@ const CreateGroup: React.FC = () => {
     try {
         const groupPayload = {
           name: newGroupName,
-          userIds: [currentUserId, targetUser.id],
+          userIds: [currentUser?.userId, targetUser.id],
         };
         const response = await apiClient.post<ApiResponse<any>>("/group", groupPayload);
         showAlert("Success", "Group created successfully.");

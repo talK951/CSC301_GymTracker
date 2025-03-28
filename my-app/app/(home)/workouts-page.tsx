@@ -4,7 +4,7 @@ import { Button, Title } from "react-native-paper";
 import { useRouter } from "expo-router";
 import apiClient from "../../utils/apiClient";
 import type { ApiResponse, WorkoutsResponseData, Workout } from "@/types/api";
-import { getCurrentUserId } from "@/utils/authHelpers";
+import { getCurrentUser } from "@/utils/authHelpers";
 import WorkoutCard from "@/components/WorkoutCard";
 
 export default function WorkoutsPage() {
@@ -19,12 +19,12 @@ export default function WorkoutsPage() {
   const fetchWorkouts = async () => {
     setLoading(true);
     try {
-      const userId = await getCurrentUserId();
-      if (userId === null) {
+      const user = await getCurrentUser();
+      if (user?.userId === null) {
         showAlert("Error", "User not authenticated");
         return;
       }
-      const response = await apiClient.get<ApiResponse<WorkoutsResponseData>>(`/workout/workouts/${userId}`);
+      const response = await apiClient.get<ApiResponse<WorkoutsResponseData>>(`/workout/workouts/${user?.userId}`);
       setWorkouts(response.data.data.workouts);
     } catch (error) {
       console.error(error);

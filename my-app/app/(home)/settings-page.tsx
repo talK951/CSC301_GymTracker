@@ -4,11 +4,9 @@ import { Title, Card, Button } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { deleteToken } from "@/utils/authStorage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { getCurrentUserId } from "@/utils/authHelpers";
+import { getCurrentUser } from "@/utils/authHelpers";
 import apiClient from "../../utils/apiClient";
-import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'react-native';
-import * as FileSystem from 'expo-file-system';
 
 export interface User {
     id: number;
@@ -20,12 +18,12 @@ export interface User {
 
 export const fetchCurrentUser = async (setUser: React.Dispatch<React.SetStateAction<User | null>>) => {
     try {
-        const userId = await getCurrentUserId();
-        if (userId === null) {
+        const user = await getCurrentUser();
+        if (user === null) {
             showAlert("Error", "User not authenticated");
             return;
         }
-        const response = await apiClient.get(`/user/${userId}`);
+        const response = await apiClient.get(`/user/${user.userId}`);
         setUser(response.data.data);
     } catch (error) {
         console.error(error);
@@ -53,8 +51,8 @@ const SettingsPage = () => {
 
     const uploadImageToServer = async () => {
         try {
-            const userId = await getCurrentUserId();
-            if (!userId || !selectedFile) {
+            const user = await getCurrentUser();
+            if (!user?.userId || !selectedFile) {
                 showAlert("Error", "No file selected or user not found.");
                 return;
             }
@@ -62,7 +60,7 @@ const SettingsPage = () => {
             const formData = new FormData();
             formData.append('file', selectedFile);
 
-            await apiClient.post(`/user/${userId}/upload-profile-pic`, formData, {
+            await apiClient.post(`/user/${user.userId}/upload-profile-pic`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

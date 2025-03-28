@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { getCurrentUserId } from "@/utils/authHelpers";
+import { getCurrentUser } from "@/utils/authHelpers";
 import apiClient from "@/utils/apiClient";
 import { ApiResponse } from "@/types/api";
 import { Workout } from "@/types/api";
-import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width, height } = Dimensions.get("window");
 
 const fetchWorkoutData = async (setWorkoutData: React.Dispatch<React.SetStateAction<Workout[] | null>>) => {
-    const data = (await apiClient.get(`/workout/workouts/${await getCurrentUserId()}`));
+    const user = await getCurrentUser();
+    const data = await apiClient.get(`/workout/workouts/${user?.userId}`);
     if (data === null) {
         console.error("Could not fetch workout data");
         return;
@@ -120,12 +121,12 @@ function PersonalPage() {
 
     const fetchUsersWorkouts = async () => {
         try {
-            const userId = await getCurrentUserId();
-            if (userId === null) {
+            const user = await getCurrentUser();
+            if (user === null) {
                 showAlert("Error", "User not authenticated");
                 return;
             }
-            const response = await apiClient.get<ApiResponse<any>>(`workout/exercises/${userId}`);
+            const response = await apiClient.get<ApiResponse<any>>(`workout/exercises/${user.userId}`);
             if (response.data && response.data.data) {
                 // Convert the response object into a Map.
                 const exerciseMap = new Map<string, number[]>(Object.entries(response.data.data));

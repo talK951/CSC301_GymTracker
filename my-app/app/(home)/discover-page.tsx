@@ -4,23 +4,23 @@ import { TextInput, Title } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import apiClient from '@/utils/apiClient';
 import { useRouter } from "expo-router";
-import type { ApiResponse, User } from '@/types/api';
+import type { ApiResponse, CurrentUser, User } from '@/types/api';
 import UserInfoCard from '@/components/UserInfoCard';
-import { getCurrentUserId } from '@/utils/authHelpers';
+import { getCurrentUser } from '@/utils/authHelpers';
 
 const DiscoverPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchCurrentUserId = async () => {
-      const id = await getCurrentUserId();
-      setCurrentUserId(id);
+    const fetchCurrentUser = async () => {
+      const user = await getCurrentUser();
+      setCurrentUser(user);
     };
-    fetchCurrentUserId();
+    fetchCurrentUser();
     fetchUsers();
   }, []);
 
@@ -38,9 +38,9 @@ const DiscoverPage: React.FC = () => {
     }
   };
 
-  const filteredUsers = Array.isArray(users) ? users.filter(user =>
-    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) && user.id !== currentUserId
-  ) : [];
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) && user.id !== currentUser?.userId
+  );
 
   const renderUserItem = ({ item }: { item: User }) => (
     <UserInfoCard

@@ -1,5 +1,6 @@
 package com.utm.gym_tracker.group;
 
+import com.utm.gym_tracker.post.Post;
 import com.utm.gym_tracker.user.User;
 import jakarta.persistence.*;
 
@@ -10,10 +11,10 @@ import java.util.*;
 public class Group {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Uses auto-incrementing ID
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, unique = true, length = 20) // Placeholder
+    @Column(name = "name", nullable = false, unique = true, length = 20)
     private String name;
 
     @ManyToMany(cascade = CascadeType.ALL)
@@ -24,10 +25,13 @@ public class Group {
     )
     private Set<User> users = new HashSet<>();
 
-    @ElementCollection
-    @OrderColumn(name = "post_order")
-    @Column(name = "post", nullable = false)
-    private List<String> posts = new ArrayList<>();
+    // @ElementCollection
+    // @OrderColumn(name = "post_order")
+    // @Column(name = "post", nullable = false)
+    // private List<String> posts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts = new ArrayList<>();
 
     public Group() {}
 
@@ -81,12 +85,16 @@ public class Group {
         return Optional.of(user);
     }
 
-    public List<String> getPosts() {
+    public List<Post> getPosts() {
         return posts;
     }
 
-    // Helper method to add a post in order
-    public void addPost(String post) {
+    public void setPosts(List<Post> posts) {
+        this.posts = posts;
+    }
+
+    public void addPost(Post post) {
         this.posts.add(post);
+        post.setGroup(this);
     }
 }
