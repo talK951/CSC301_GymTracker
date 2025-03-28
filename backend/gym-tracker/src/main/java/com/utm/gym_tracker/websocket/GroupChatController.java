@@ -15,6 +15,7 @@ import com.utm.gym_tracker.post.PostService;
 import com.utm.gym_tracker.user.User;
 import com.utm.gym_tracker.user.UserService;
 
+
 @Controller
 public class GroupChatController {
 
@@ -42,6 +43,14 @@ public class GroupChatController {
 
             newPost.setSenderId(Long.parseLong(post.getSender()));
             newPost.setContent(post.getContent());
+
+            if (Boolean.TRUE.equals(post.getIsImage())) {
+                newPost.setIsImage(true);
+                newPost.setS3ObjectKey(post.getS3ObjectKey()); 
+            } else {
+                newPost.setIsImage(false);
+            }
+
             newPost.setTimestamp(LocalDateTime.now());
 
             postService.createPost(newPost);

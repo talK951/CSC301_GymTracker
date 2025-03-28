@@ -6,15 +6,19 @@ public class GroupPost {
     private String sender;
     private String content;
     private String timestamp;
+    private Boolean isImage;
+    private String s3ObjectKey;
 
     public GroupPost() {}
 
-    public GroupPost(Long groupId, String groupName, String sender, String content, String timestamp) {
+    public GroupPost(Long groupId, String groupName, String sender, String content, String timestamp, String s3ObjectKey, Boolean isImage) {
         this.groupId = groupId;
         this.groupName = groupName;
         this.sender = sender;
         this.content = content;
         this.timestamp = timestamp;
+        this.s3ObjectKey = s3ObjectKey;
+        this.isImage = isImage;
     }
 
     public Long getGroupId() {return groupId; }
@@ -36,5 +40,18 @@ public class GroupPost {
     public String getTimestamp() { return timestamp; }
 
     public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
+
+    public String getS3ObjectKey() {
+        return s3ObjectKey;
+    }
+    public void setS3ObjectKey(String s3ObjectKey) {
+        this.s3ObjectKey = s3ObjectKey;
+    }
+    public Boolean getIsImage() {
+        return isImage;
+    }
+    public void setIsImage(Boolean isImage) {
+        this.isImage = isImage;
+    }
 
 }

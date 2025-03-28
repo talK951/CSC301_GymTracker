@@ -11,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URL;
-import java.time.Instant;
-import java.util.Date;
 import java.util.UUID;
 
 @RestController
@@ -71,19 +69,11 @@ public class S3Controller {
     @PostMapping("/presign-upload")
     public ResponseEntity<ApiResponse<PresignResponse>> generatePresignedUrl(@RequestBody PresignRequest request) {
         try {
-            // Generate a unique S3 key; you might use a UUID and include the file extension if needed.
             String uniqueKey = UUID.randomUUID().toString() + "_" + request.getFileName();
-
-            // Set expiration (e.g., valid for 10 minutes)
-            Instant expirationTime = Instant.now().plusSeconds(600);
-            Date expiration = Date.from(expirationTime);
 
             GeneratePresignedUrlRequest generatePresignedUrlRequest =
                     new GeneratePresignedUrlRequest(bucketName, uniqueKey)
-                            .withMethod(HttpMethod.PUT)
-                            .withExpiration(expiration);
-            // Optionally set the content type in the request metadata if needed:
-            // generatePresignedUrlRequest.addRequestParameter("Content-Type", request.getContentType());
+                            .withMethod(HttpMethod.PUT);
 
             URL url = s3client.generatePresignedUrl(generatePresignedUrlRequest);
             PresignResponse presignResponse = new PresignResponse(url.toString(), uniqueKey);

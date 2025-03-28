@@ -23,8 +23,6 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    // @Column(columnDefinition = "TEXT")
-    // private String imageUrl;
     @Column
     private String s3ObjectKey;
 

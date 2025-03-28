@@ -4,7 +4,7 @@ import { Title, Card, Button } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { deleteToken } from "@/utils/authStorage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { getCurrentUserId } from "@/utils/authHelpers";
+import { getCurrentUser } from "@/utils/authHelpers";
 import apiClient from "../../utils/apiClient";
 
 export interface User {
@@ -25,12 +25,13 @@ const SettingsPage = () => {
 
   const fetchCurrentUser = async () => {
     try {
-      const userId = await getCurrentUserId();
-      if (userId === null) {
+      const user = await getCurrentUser();
+      if (user?.userId === null) {
         showAlert("Error", "User not authenticated");
         return;
       }
-      const response = await apiClient.get(`/user/${userId}`);
+
+      const response = await apiClient.get(`/user/${user?.userId}`);
       setUser(response.data.data);
     } catch (error) {
       console.error(error);

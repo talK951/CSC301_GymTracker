@@ -56,10 +56,10 @@ export class ChatStompClient {
   }
 
   // Publish (send) a message to the group chat.
-  public sendMessage(content: string, sender: string) {
+  public sendMessage(content: string, isImage: boolean, s3ObjectKey: string,  sender: string) {
     this.stompClient.publish({
       destination: `/app/chat/${this.groupName}`,
-      body: JSON.stringify({ groupName: this.groupName, sender: sender, content }),
+      body: JSON.stringify({ groupName: this.groupName, content, isImage, s3ObjectKey, sender })
     });
   }
 }

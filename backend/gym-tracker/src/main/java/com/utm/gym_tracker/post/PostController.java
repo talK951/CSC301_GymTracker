@@ -1,6 +1,5 @@
 package com.utm.gym_tracker.post;
 
-import com.utm.gym_tracker.aws.S3Service;
 import com.utm.gym_tracker.dto.ApiResponse;
 import com.utm.gym_tracker.group.Group;
 import com.utm.gym_tracker.group.GroupService;
@@ -24,14 +23,12 @@ public class PostController {
     private final PostService postService;
     private final GroupService groupService;
     private final UserService userService;
-    private final S3Service s3Service;
 
     @Autowired
-    public PostController(PostService postService, GroupService groupService, UserService userService, S3Service s3Service){
+    public PostController(PostService postService, GroupService groupService, UserService userService){
         this.postService = postService;
         this.groupService = groupService;
         this.userService = userService;
-        this.s3Service = s3Service;
     }
 
     // Create a new post
@@ -63,11 +60,6 @@ public class PostController {
     Optional<User> senderOpt = userService.getUserByID(post.getSenderId());
     String senderUsername = senderOpt.map(User::getUsername).orElse("Unknown");
 
-    String imageUrl = null;
-    if (Boolean.TRUE.equals(post.getIsImage())) {
-        imageUrl = s3Service.generatePresignedGet(post.getS3ObjectKey()); 
-    }
-
     return new PostResponse(
             post.getId(),
             post.getContent(),
@@ -75,7 +67,7 @@ public class PostController {
             post.getGroup().getId(),
             post.getGroup().getName(),
             senderUsername,
-            imageUrl,
+            post.getS3ObjectKey(),
             post.getIsImage()
     );
 }

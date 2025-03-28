@@ -44,11 +44,18 @@ export interface User {
     workouts?: Workout[];
 }
 
+export interface CurrentUser {
+    userId: number;
+    username: string;
+  }
+
 export interface Post {
     id: number;
     content: string;
     sender: string;
     timestamp: string;
+    s3ObjectKey: string;
+    isImage: boolean;
 }
 
 export type CreateExerciseDTO = Omit<Exercise, "id" | "createdAt">;
