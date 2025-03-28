@@ -53,7 +53,31 @@ public class WorkoutController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/exrecises/{userId}")
+    @GetMapping("/workouts/{userId}")
+    public ResponseEntity<ApiResponse<Map<String, List<WorkoutResponse>>>> getWorkoutsForUser(@PathVariable Long userId) {
+        Optional<User> userOpt = userService.getUserByID(userId);
+        User authUser = getAuthenticatedUser();
+
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        if (!authUser.getID().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        List<Workout> workouts = workoutService.getWorkoutsForUser(userId);
+        List<WorkoutResponse> workoutDtos = workouts.stream()
+                .map(this::mapWorkoutToDto)
+                .collect(Collectors.toList());
+
+        Map<String, List<WorkoutResponse>> data = new HashMap<>();
+        data.put("workouts", workoutDtos);
+
+        ApiResponse<Map<String, List<WorkoutResponse>>> response = new ApiResponse<>("Success", data);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/exercises/{userId}")
     public ResponseEntity<ApiResponse<Map<String, ArrayList<Integer>>>> getExercisesForUser(@PathVariable Long userId) {
         Optional<User> userOpt = userService.getUserByID(userId);
         User authUser = getAuthenticatedUser();

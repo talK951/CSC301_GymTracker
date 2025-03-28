@@ -9,6 +9,72 @@ import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 
 const { width, height } = Dimensions.get("window");
 
+const fetchWorkoutData = async (setWorkoutData: React.Dispatch<React.SetStateAction<Workout[] | null>>) => {
+    const data = (await apiClient.get(`/workout/workouts/${await getCurrentUserId()}`));
+    if (data === null) {
+        console.error("Could not fetch workout data");
+        return;
+    }
+
+    const workoutData: Workout[] = data.data.data.workouts;
+    const monthData: Workout[] = [];
+    for (let workout of workoutData) {
+        const month = Number(workout.startTime.toString().split('T')[0].split('-')[1]);
+        const thisMonth = new Date().getMonth() + 1;
+        if (month === thisMonth) {
+            monthData.push(workout);
+        }
+    }
+
+    setWorkoutData(monthData);
+}
+
+const fetchNumWorkouts = async (data: Workout[] | null, setNumWorkouts: React.Dispatch<React.SetStateAction<number>>) => {
+    if (data === null) {
+        return;
+    }
+
+    setNumWorkouts(data.length);
+}
+
+const fetchLongestStreak = async (data: Workout[] | null, setLongestStreak: React.Dispatch<React.SetStateAction<number>>) => {
+    if (data === null || data.length === 0) {
+        setLongestStreak(0);
+        return;
+    }
+
+    // 1. Extract date parts and remove duplicates
+    const uniqueDates = new Set(
+        data.map(workout => workout.startTime.toString().split('T')[0])
+    );
+
+    // 2. Convert to Date objects and sort chronologically
+    const sortedDates = Array.from(uniqueDates)
+        .map(dateStr => new Date(`${dateStr}T00:00:00Z`))
+        .sort((a, b) => a.getTime() - b.getTime());
+
+    let maxStreak = 1;
+    let currentStreak = 1;
+
+    // 3. Check consecutive dates in sorted order
+    for (let i = 1; i < sortedDates.length; i++) {
+        const prevTime = sortedDates[i - 1].getTime();
+        const currTime = sortedDates[i].getTime();
+
+        // Calculate exact day difference between dates
+        const dayDiff = (currTime - prevTime) / (1000 * 60 * 60 * 24);
+
+        if (dayDiff === 1) {
+            currentStreak++;
+            maxStreak = Math.max(maxStreak, currentStreak);
+        } else if (dayDiff > 1) {
+            currentStreak = 1; // Reset streak for gaps >1 day
+        }
+    }
+
+    setLongestStreak(maxStreak);
+}
+
 function PersonalPage() {
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const [workoutChosen, setWorkoutChosen] = useState("");
