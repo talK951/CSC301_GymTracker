@@ -125,7 +125,7 @@ function PersonalPage() {
                 showAlert("Error", "User not authenticated");
                 return;
             }
-            const response = await apiClient.get<ApiResponse<any>>(`workout/exrecises/${userId}`);
+            const response = await apiClient.get<ApiResponse<any>>(`workout/exercises/${userId}`);
             if (response.data && response.data.data) {
                 // Convert the response object into a Map.
                 const exerciseMap = new Map<string, number[]>(Object.entries(response.data.data));

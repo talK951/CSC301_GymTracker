@@ -24,7 +24,7 @@ export default function WorkoutsPage() {
         showAlert("Error", "User not authenticated");
         return;
       }
-      const response = await apiClient.get<ApiResponse<WorkoutsResponseData>>(`/workout/user/${userId}`);
+      const response = await apiClient.get<ApiResponse<WorkoutsResponseData>>(`/workout/workouts/${userId}`);
       setWorkouts(response.data.data.workouts);
     } catch (error) {
       console.error(error);
