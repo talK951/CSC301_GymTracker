@@ -128,12 +128,14 @@ const SettingsPage = () => {
                     onChange={handleFileChange}
                     style={{ marginTop: 10, marginBottom: 10 }}
                 />
-                <Button mode="contained" onPress={uploadImageToServer}>
-                    Upload
-                </Button>
+                
+                <View style={styles.buttonContainer}>
+                    <Button mode="contained" onPress={uploadImageToServer} style={styles.uploadButton}>
+                        Upload
+                    </Button>
+                </View>
 
-
-                <View style={styles.logoutContainer}>
+                <View style={styles.buttonContainer}>
                     <Button
                         mode="contained"
                         onPress={handleLogout}
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
         color: "#333",
         marginTop: 4,
     },
-    logoutContainer: {
+    buttonContainer: {
         marginTop: 20,
         alignItems: "center",
         marginBottom: 2
@@ -199,6 +201,9 @@ const styles = StyleSheet.create({
         color: "#FFF",
         fontWeight: "bold",
     },
+    uploadButton: {
+        width: "105%",
+    }
 });
 
 export function showAlert(title: string, message: string) {

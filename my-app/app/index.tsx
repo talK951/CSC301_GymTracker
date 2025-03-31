@@ -13,7 +13,7 @@ export default function HomeScreen() {
       style={styles.background}
     >
       <View style={styles.container}>
-        <Text style={styles.title}>Welcome to Gym Tracker</Text>
+        <Text style={styles.title}>SpotMate</Text>
         <Text style={styles.subtitle}>
           Join the UTM weightlifting community and start tracking your fitness goals!
         </Text>
