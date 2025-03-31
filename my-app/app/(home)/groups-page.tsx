@@ -71,7 +71,6 @@ const GroupsPage: React.FC = () => {
   );
 
   const handleDeleteGroup = async (groupId: string) => {
-    if (user?.userId) return;
     const confirmed = await showConfirm("Leave Group", "Are you sure you want to leave this group?");
     if (!confirmed) return;
     try {
